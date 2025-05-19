@@ -1,5 +1,13 @@
 #!/bin/bash
-source /Users/sophieperrin/.pyenv/versions/3.7.17/envs/hyphc_env/bin/activate
-export HHC_HOME=$(pwd)
+
+# Récupère le chemin absolu du dossier contenant ce script
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Active l'environnement virtuel
+source "$SCRIPT_DIR/hyphc_env/bin/activate"
+
+# Définit les chemins relatifs à ce dossier
+export HHC_HOME="$SCRIPT_DIR"
 export DATAPATH="$HHC_HOME/data"                # Path where to save the data files
 export SAVEPATH="$HHC_HOME/embeddings"          # Path where to save the trained models 
+
