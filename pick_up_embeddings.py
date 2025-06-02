@@ -14,35 +14,37 @@ from utils.poincare import project
 # SERA A SUPPRIMER DU PROGRAMME DEFINITIF
 import sys
 
-def get_latest_model_dir(zoo_path):
+
+def get_latest_model_dir(path):
     """
-    Retourne le chemin absolu du dernier dossier de modèle sauvegardé dans `zoo_path`.
+    Retourne le chemin absolu du dernier dossier de modèle sauvegardé dans `path`.
     Chaque sous-dossier est supposé contenir un modèle (config.json, model_{seed}.pkl).
     """
-    # Liste tous les dossiers dans zoo_path
-    subdirs = [os.path.join(zoo_path, d) for d in os.listdir(zoo_path)
-               if os.path.isdir(os.path.join(zoo_path, d))]
+    # Liste tous les dossiers dans path
+    subdirs = [os.path.join(path, d) for d in os.listdir(path)
+               if os.path.isdir(os.path.join(path, d))]
 
     if not subdirs:
-        raise FileNotFoundError(f"Aucun sous-dossier trouvé dans {zoo_path}")
+        raise FileNotFoundError(f"Aucun sous-dossier trouvé dans {path}")
 
     # Trie par date de dernière modification (dossier le plus récent)
     latest_dir = max(subdirs, key=os.path.getmtime)
     return latest_dir
 
 
-zoo_dir = "/home/onyxia/work/HypHC/embeddings/zoo"
-model_dir = get_latest_model_dir(zoo_dir)
-
-
+dir = "/home/onyxia/work/HypHC/embeddings/zoo"
+model_dir = get_latest_model_dir(dir)
 
 # %%
 if __name__ == "__main__":
+    #Sera à supprimer du programme définitif
     sys.argv = [
         'pick_up_embeddings.py',
         '--model_dir', model_dir,
         '--seed', '0'
     ]
+    os.environ["DATAPATH"] = "/home/onyxia/work/HypHC/datasets"
+    # Fin de ce qui sera à supprimer
     parser = argparse.ArgumentParser("Hyperbolic Hierarchical Clustering.")
     parser.add_argument("--model_dir", type=str, required=True,
                         help="path to a directory with a torch model_{seed}.pkl and a config.json files saved by train.py."
@@ -54,6 +56,9 @@ if __name__ == "__main__":
     config = json.load(open(os.path.join(args.model_dir, "config.json")))
     config_args = argparse.Namespace(**config)
     _, y_true, similarities = load_data(config_args.dataset)
+    ########################################################
+    # cette ligne juste ci dessus renvoie un message d'erreur : voir le programme loading.py 
+    # dans datasets pour la traiter
 
     # build HypHC model
     model = HypHC(similarities.shape[0], config_args.rank, config_args.temperature, config_args.init_size,
