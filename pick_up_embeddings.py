@@ -9,15 +9,40 @@ from datasets.loading import load_data
 from model.hyphc import HypHC
 from utils.poincare import project
 
+
 # %%
 # SERA A SUPPRIMER DU PROGRAMME DEFINITIF
 import sys
-sys.argv = ['main.py', '--model_dir', './checkpoints/exp1', '--epochs', '100']
+
+def get_latest_model_dir(zoo_path):
+    """
+    Retourne le chemin absolu du dernier dossier de modèle sauvegardé dans `zoo_path`.
+    Chaque sous-dossier est supposé contenir un modèle (config.json, model_{seed}.pkl).
+    """
+    # Liste tous les dossiers dans zoo_path
+    subdirs = [os.path.join(zoo_path, d) for d in os.listdir(zoo_path)
+               if os.path.isdir(os.path.join(zoo_path, d))]
+
+    if not subdirs:
+        raise FileNotFoundError(f"Aucun sous-dossier trouvé dans {zoo_path}")
+
+    # Trie par date de dernière modification (dossier le plus récent)
+    latest_dir = max(subdirs, key=os.path.getmtime)
+    return latest_dir
+
+
+zoo_dir = "/home/onyxia/work/HypHC/embeddings/zoo"
+model_dir = get_latest_model_dir(zoo_dir)
 
 
 
 # %%
 if __name__ == "__main__":
+    sys.argv = [
+        'pick_up_embeddings.py',
+        '--model_dir', model_dir,
+        '--seed', '0'
+    ]
     parser = argparse.ArgumentParser("Hyperbolic Hierarchical Clustering.")
     parser.add_argument("--model_dir", type=str, required=True,
                         help="path to a directory with a torch model_{seed}.pkl and a config.json files saved by train.py."
