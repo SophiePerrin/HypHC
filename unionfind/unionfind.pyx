@@ -1,5 +1,3 @@
-# distutils: define_macros=NPY_NO_DEPRECATED_API=NPY_1_7_API_VERSION
-
 """ Union find data structure. Adapted from https://github.com/eldridgejm/unionfind """
 
 cimport cython
@@ -20,12 +18,12 @@ cdef class UnionFind:
     # Variables that track the binary tree of merges
     cdef int _next_id
     cdef int *_tree  # parent links
-    cdef int *_id    # the map from UF trees to merge tree identifiers
+    cdef int *_id  # the map from UF trees to merge tree identifiers
 
     def __cinit__(self, int n):
         self.n = n
-        self.parent = <int *> malloc(<size_t>(n * sizeof(int)))            # <-- MODIFICATION : cast size_t
-        self.rank = <int *> malloc(<size_t>(n * sizeof(int)))              # <-- MODIFICATION : cast size_t
+        self.parent = <int *> malloc(<size_t>(n * sizeof(int)))  # <-- MODIFICATION : cast size_t pour éviter warning
+        self.rank = <int *> malloc(<size_t>(n * sizeof(int)))    # <-- MODIFICATION : cast size_t pour éviter warning
 
         cdef int i
         for i in range(n):
@@ -34,10 +32,10 @@ cdef class UnionFind:
         # self._n_sets = n
 
         self._next_id = n
-        self._tree = <int *> malloc(<size_t>((2 * n - 1) * sizeof(int)))   # <-- MODIFICATION : cast size_t
+        self._tree = <int *> malloc(<size_t>((2 * n - 1) * sizeof(int)))  # <-- MODIFICATION : cast size_t pour éviter warning
         for i in range(2 * n - 1):
             self._tree[i] = -1
-        self._id = <int *> malloc(<size_t>(n * sizeof(int)))               # <-- MODIFICATION : cast size_t
+        self._id = <int *> malloc(<size_t>(n * sizeof(int)))  # <-- MODIFICATION : cast size_t pour éviter warning
         for i in range(n):
             self._id[i] = i
 
@@ -85,12 +83,11 @@ cdef class UnionFind:
     @cython.boundscheck(False)
     @cython.wraparound(False)
     @cython.nonecheck(False)
-    def merge(self, np.ndarray[DTYPE_t, ndim=2, mode="c"] ij):  # <-- MODIFICATION : ajout mode="c"
+    def merge(self, np.ndarray[DTYPE_t, ndim=2] ij):
         """ Merge a sequence of pairs """
-        cdef np.ndarray[DTYPE_t, ndim=2] c_ij = ij  # <-- MODIFICATION : typage explicite pour éviter accès à .dimensions
         cdef int k
-        for k in range(c_ij.shape[0]):
-            self.union(c_ij[k, 0], c_ij[k, 1])
+        for k in range(ij.shape[0]):
+            self.union(ij[k, 0], ij[k, 1])
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
