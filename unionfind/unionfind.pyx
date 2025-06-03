@@ -21,9 +21,12 @@ cdef class UnionFind:
     cdef int *_id  # the map from UF trees to merge tree identifiers
 
     def __cinit__(self, int n):
+        if n <= 0:  # <-- MODIF : vérifie que n est strictement positif
+            raise ValueError("n must be positive")  # <-- MODIF
+
         self.n = n
-        self.parent = <int *> malloc(<size_t>(n * sizeof(int)))  # <-- MODIFICATION : cast size_t pour éviter warning
-        self.rank = <int *> malloc(<size_t>(n * sizeof(int)))    # <-- MODIFICATION : cast size_t pour éviter warning
+        self.parent = <int *> malloc(<size_t>(n * sizeof(int)))  # <-- MODIF
+        self.rank = <int *> malloc(<size_t>(n * sizeof(int)))    # <-- MODIF
 
         cdef int i
         for i in range(n):
@@ -32,10 +35,15 @@ cdef class UnionFind:
         # self._n_sets = n
 
         self._next_id = n
-        self._tree = <int *> malloc(<size_t>((2 * n - 1) * sizeof(int)))  # <-- MODIFICATION : cast size_t pour éviter warning
+        cdef size_t tree_size = <size_t>(2 * n - 1)  # <-- MODIF : stocke la taille séparément
+        if tree_size > (<size_t>-1) // sizeof(int):  # <-- MODIF : vérifie dépassement potentiel
+            raise MemoryError("Requested tree size is too large")  # <-- MODIF
+
+        self._tree = <int *> malloc(tree_size * sizeof(int))  # <-- MODIF
         for i in range(2 * n - 1):
             self._tree[i] = -1
-        self._id = <int *> malloc(<size_t>(n * sizeof(int)))  # <-- MODIFICATION : cast size_t pour éviter warning
+
+        self._id = <int *> malloc(<size_t>(n * sizeof(int)))  # <-- MODIF
         for i in range(n):
             self._id[i] = i
 
@@ -110,3 +118,4 @@ cdef class UnionFind:
     @property
     def tree(self):
         return [self._tree[i] for i in range(2 * self.n - 1)]
+
