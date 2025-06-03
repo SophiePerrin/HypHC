@@ -5,6 +5,7 @@ import argparse
 import json
 import os
 import torch
+import numpy as np
 from datasets.loading import load_data
 from model.hyphc import HypHC
 from utils.poincare import project
@@ -43,7 +44,8 @@ if __name__ == "__main__":
         '--model_dir', model_dir,
         '--seed', '0'
     ]
-    os.environ["DATAPATH"] = "/home/onyxia/work/HypHC/datasets"
+    os.environ["DATAPATH"] = "/home/onyxia/work/HypHC/data"
+    # os.environ["DATAPATH"] = "/home/onyxia/work/HypHC/datasets"
     # Fin de ce qui sera à supprimer
     parser = argparse.ArgumentParser("Hyperbolic Hierarchical Clustering.")
     parser.add_argument("--model_dir", type=str, required=True,
@@ -75,9 +77,6 @@ if __name__ == "__main__":
 # %%
     leaves_embeddings = project(leaves_embeddings).detach().cpu().numpy()
 # %%
-    np.save("leaves_emb.npy",leaves_embeddings)
-
-# %%
-
-    print(leaves_embeddings)
-# %%
+    # np.save("leaves_emb.npy", leaves_embeddings)
+    np.save(f"{model_dir}/leaves_emb.npy", leaves_embeddings)
+    # sauvegarde les embeddings des feuilles dans le même dossier que le modèle
