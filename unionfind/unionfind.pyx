@@ -1,3 +1,5 @@
+# distutils: define_macros=NPY_NO_DEPRECATED_API=NPY_1_7_API_VERSION
+
 """ Union find data structure. Adapted from https://github.com/eldridgejm/unionfind """
 
 cimport cython
@@ -22,8 +24,8 @@ cdef class UnionFind:
 
     def __cinit__(self, int n):
         self.n = n
-        self.parent = <int *> malloc(n * sizeof(int))
-        self.rank = <int *> malloc(n * sizeof(int))
+        self.parent = <int *> malloc(<size_t>(n * sizeof(int)))  # <-- MODIFICATION : cast size_t pour éviter warning
+        self.rank = <int *> malloc(<size_t>(n * sizeof(int)))    # <-- MODIFICATION : cast size_t pour éviter warning
 
         cdef int i
         for i in range(n):
@@ -32,10 +34,10 @@ cdef class UnionFind:
         # self._n_sets = n
 
         self._next_id = n
-        self._tree = <int *> malloc((2 * n - 1) * sizeof(int))
+        self._tree = <int *> malloc(<size_t>((2 * n - 1) * sizeof(int)))  # <-- MODIFICATION : cast size_t pour éviter warning
         for i in range(2 * n - 1):
             self._tree[i] = -1
-        self._id = <int *> malloc(n * sizeof(int))
+        self._id = <int *> malloc(<size_t>(n * sizeof(int)))  # <-- MODIFICATION : cast size_t pour éviter warning
         for i in range(n):
             self._id[i] = i
 
@@ -43,8 +45,8 @@ cdef class UnionFind:
         free(self.parent)
         free(self.rank)
 
-    @cython.boundscheck(False)  # turn off bounds-checking for entire function
-    @cython.wraparound(False)  # turn off negative index wrapping for entire function
+    @cython.boundscheck(False)
+    @cython.wraparound(False)
     @cython.nonecheck(False)
     cdef int _find(self, int i):
         if self.parent[i] == i:
@@ -58,22 +60,16 @@ cdef class UnionFind:
             raise ValueError("Out of bounds index.")
         return self._find(i)
 
-    @cython.boundscheck(False)  # turn off bounds-checking for entire function
-    @cython.wraparound(False)  # turn off negative index wrapping for entire function
+    @cython.boundscheck(False)
+    @cython.wraparound(False)
     @cython.nonecheck(False)
-    # def union(self, int i, int j):
     cpdef bint union(self, int i, int j):
-        # TODO probably best to split into internal cdef and external def with bounds checking
-        # if (i < 0) or (i > self.n) or (j < 0) or (j > self.n):
-        #     raise ValueError("Out of bounds index.")
-
         cdef int root_i, root_j
         root_i = self._find(i)
         root_j = self._find(j)
         if root_i == root_j:
             return False
         else:
-            # self._n_sets -= 1
             if self.rank[root_i] < self.rank[root_j]:
                 self.parent[root_i] = root_j
                 self._build(root_j, root_i)
@@ -86,8 +82,8 @@ cdef class UnionFind:
                 self._build(root_i, root_j)
             return True
 
-    @cython.boundscheck(False)  # turn off bounds-checking for entire function
-    @cython.wraparound(False)  # turn off negative index wrapping for entire function
+    @cython.boundscheck(False)
+    @cython.wraparound(False)
     @cython.nonecheck(False)
     def merge(self, np.ndarray[DTYPE_t, ndim=2] ij):
         """ Merge a sequence of pairs """
@@ -105,9 +101,6 @@ cdef class UnionFind:
         self._id[i] = self._next_id
         self._next_id += 1
 
-    # property n_sets:
-    #     def __get__(self):
-    #         return self._n_sets
     @property
     def sets(self):
         return 2 * self.n - self._next_id

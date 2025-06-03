@@ -1,4 +1,3 @@
-# cython: boundscheck=False, wraparound=False, cdivision=True
 # distutils: define_macros=NPY_NO_DEPRECATED_API=NPY_1_7_API_VERSION
 # cython: boundscheck=False, wraparound=False, cdivision=True
 """ MST algorithm. Adapted from scipy.cluster._hierarchy.pyx """
@@ -68,7 +67,7 @@ def mst(double[:,:] dists, int n):
             # print(x, i, current_max)
 
             if y == -1:  # ✅ Vérification de sécurité ajoutée ici
-            raise RuntimeError("Erreur dans mst(): aucun nœud trouvé pour étendre l'arbre.")
+                raise RuntimeError("Erreur dans mst(): aucun nœud trouvé pour étendre l'arbre.")
 
         # for linkage, this works if you assign it x instead, but the proof is subtle
         Z[k, 0] = j[y]
