@@ -1,6 +1,5 @@
 """Script to visualize the HypHC clustering."""
 
-# %%
 import argparse
 import json
 import os
@@ -9,11 +8,9 @@ import numpy as np
 from datasets.loading import load_data
 from model.hyphc import HypHC
 from utils.poincare import project
+import networkx as nx
 
-
-# %%
-# SERA A SUPPRIMER DU PROGRAMME DEFINITIF
-import sys
+# Ajout (pour définir le dossier dans lequel on sauvegardera les embeddings)
 
 
 def get_latest_model_dir(path):
@@ -35,18 +32,10 @@ def get_latest_model_dir(path):
 
 dir = "/home/onyxia/work/HypHC/embeddings/zoo"
 model_dir = get_latest_model_dir(dir)
+# fin de l'ajout
 
-# %%
+
 if __name__ == "__main__":
-    #Sera à supprimer du programme définitif
-    sys.argv = [
-        'pick_up_embeddings.py',
-        '--model_dir', model_dir,
-        '--seed', '0'
-    ]
-    os.environ["DATAPATH"] = "/home/onyxia/work/HypHC/data"
-    # os.environ["DATAPATH"] = "/home/onyxia/work/HypHC/datasets"
-    # Fin de ce qui sera à supprimer
     parser = argparse.ArgumentParser("Hyperbolic Hierarchical Clustering.")
     parser.add_argument("--model_dir", type=str, required=True,
                         help="path to a directory with a torch model_{seed}.pkl and a config.json files saved by train.py."
@@ -58,9 +47,6 @@ if __name__ == "__main__":
     config = json.load(open(os.path.join(args.model_dir, "config.json")))
     config_args = argparse.Namespace(**config)
     _, y_true, similarities = load_data(config_args.dataset)
-    ########################################################
-    # cette ligne juste ci dessus renvoie un message d'erreur : voir le programme loading.py 
-    # dans datasets pour la traiter
 
     # build HypHC model
     model = HypHC(similarities.shape[0], config_args.rank, config_args.temperature, config_args.init_size,
@@ -69,14 +55,15 @@ if __name__ == "__main__":
     model.load_state_dict(params, strict=False)
     model.eval()
 
-# %%
     # decode tree
     tree = model.decode_tree(fast_decoding=True)
-# %%
+
     leaves_embeddings = model.normalize_embeddings(model.embeddings.weight.data)
-# %%
+
     leaves_embeddings = project(leaves_embeddings).detach().cpu().numpy()
-# %%
+
     # np.save("leaves_emb.npy", leaves_embeddings)
     np.save(f"{model_dir}/leaves_emb.npy", leaves_embeddings)
     # sauvegarde les embeddings des feuilles dans le même dossier que le modèle
+
+    nx.write_gpickle(tree, f"{model_dir}/tree.gpickle")
