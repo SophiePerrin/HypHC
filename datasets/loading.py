@@ -1,7 +1,7 @@
 """Dataset loading."""
 
 import os
-
+import s3fs
 import numpy as np
 
 UCI_DATASETS = [
@@ -10,6 +10,10 @@ UCI_DATASETS = [
     "iris",
 ]
 
+GADBench_datasets = [
+    "weibo",
+    "reddit"
+]
 
 def load_data(dataset, normalize=True):
     """Load dataset.
@@ -24,7 +28,12 @@ def load_data(dataset, normalize=True):
     if dataset in UCI_DATASETS:
         x, y = load_uci_data(dataset)
     else:
-        raise NotImplementedError("Unknown dataset {}.".format(dataset))
+        if dataset in GADBench_datasets:
+            x = load_data_s3(x, dataset)
+            y = load_data_s3(y, dataset)
+        else:
+            raise NotImplementedError("Unknown dataset {}.".format(dataset))
+            
     if normalize:
         x = x / np.linalg.norm(x, axis=1, keepdims=True)
     x0 = x[None, :, :]
@@ -72,3 +81,30 @@ def load_uci_data(dataset):
     std = x.std(0)
     x = (x - mean) / std
     return x, y
+
+
+def load_data_s3(name, dataset_name):
+    # Paramètres S3
+    S3_ENDPOINT_URL = "https://" + os.environ["AWS_S3_ENDPOINT"]
+
+    # Initialiser le système de fichiers S3
+    fs = s3fs.S3FileSystem(client_kwargs={'endpoint_url': S3_ENDPOINT_URL})
+
+    # Spécifier le chemin dans le bucket
+    BUCKET = "sophieperrinlyon2"
+    FILE_KEY_S3 = f"albert/{name}_{dataset_name}.npy"  # Remplace par le chemin correct
+    FILE_PATH_S3 = BUCKET + "/" + FILE_KEY_S3
+
+    # Charger le fichier .npy depuis S3
+    with fs.open(FILE_PATH_S3, mode="rb") as f:
+        array = np.load(f)
+
+    # Vérification (optionnelle)
+    print(array.shape)
+    print(array.dtype)
+    return array
+
+
+
+# Vérifie que ton endpoint S3 (AWS_S3_ENDPOINT) est bien défini dans tes variables d’environnement.
+
