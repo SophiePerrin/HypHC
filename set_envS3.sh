@@ -15,3 +15,4 @@ export SAVEPATH=$HOME/work/HypHC/results
 
 # (Optionnel) Créer le dossier s’il n’existe pas
 # mkdir -p "$SAVEPATH"
+
