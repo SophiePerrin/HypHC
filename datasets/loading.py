@@ -41,13 +41,12 @@ def load_data(dataset, normalize=True):
 
     else:
         if dataset in GADBench_datasets:
-            x = load_data_s3(x, dataset)
-            y = load_data_s3(y, dataset)
-            similarities = load_data_s3(A, dataset)
+            x = load_data_s3("x", dataset)
+            y = load_data_s3("y", dataset)
+            similarities = load_data_s3("A", dataset)
         else:
             raise NotImplementedError("Unknown dataset {}.".format(dataset))
-            
-    
+               
     return x, y, similarities
 
 
@@ -89,6 +88,11 @@ def load_uci_data(dataset):
 
 
 def load_data_s3(name, dataset_name):
+    local_path = f"/tmp/{name}_{dataset_name}.npy"
+
+    if os.path.exists(local_path):
+        return np.load(local_path)
+
     # Paramètres S3
     S3_ENDPOINT_URL = "https://" + os.environ["AWS_S3_ENDPOINT"]
 
@@ -107,9 +111,12 @@ def load_data_s3(name, dataset_name):
     # Vérification (optionnelle)
     print(array.shape)
     print(array.dtype)
+
+    # Sauvegarde en local pour la prochaine fois
+    # np.save(local_path, array)
+
     return array
 
 
 
 # Vérifie que ton endpoint S3 (AWS_S3_ENDPOINT) est bien défini dans tes variables d’environnement.
-
