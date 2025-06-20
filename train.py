@@ -64,7 +64,6 @@ def train(args):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model.to(device)
 
-
     # create optimizer
     Optimizer = getattr(optim, args.optimizer)
     optimizer = Optimizer(model.parameters(), args.learning_rate)

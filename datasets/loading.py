@@ -15,6 +15,7 @@ GADBench_datasets = [
     "reddit"
 ]
 
+
 def load_data(dataset, normalize=True):
     """Load dataset.
 
@@ -27,22 +28,26 @@ def load_data(dataset, normalize=True):
     """
     if dataset in UCI_DATASETS:
         x, y = load_uci_data(dataset)
+        
+        if normalize:
+            x = x / np.linalg.norm(x, axis=1, keepdims=True)
+        x0 = x[None, :, :]
+        x1 = x[:, None, :]
+        cos = (x0 * x1).sum(-1)
+        similarities = 0.5 * (1 + cos)
+        similarities = np.triu(similarities) + np.triu(similarities).T
+        similarities[np.diag_indices_from(similarities)] = 1.0
+        similarities[similarities > 1.0] = 1.0
+
     else:
         if dataset in GADBench_datasets:
             x = load_data_s3(x, dataset)
             y = load_data_s3(y, dataset)
+            similarities = load_data_s3(A, dataset)
         else:
             raise NotImplementedError("Unknown dataset {}.".format(dataset))
             
-    if normalize:
-        x = x / np.linalg.norm(x, axis=1, keepdims=True)
-    x0 = x[None, :, :]
-    x1 = x[:, None, :]
-    cos = (x0 * x1).sum(-1)
-    similarities = 0.5 * (1 + cos)
-    similarities = np.triu(similarities) + np.triu(similarities).T
-    similarities[np.diag_indices_from(similarities)] = 1.0
-    similarities[similarities > 1.0] = 1.0
+    
     return x, y, similarities
 
 
