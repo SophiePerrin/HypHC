@@ -3,6 +3,7 @@
 import argparse
 import json
 import os
+import s3fs
 import torch
 import numpy as np
 from datasets.loading import load_data
@@ -101,8 +102,24 @@ if __name__ == "__main__":
 
     leaves_embeddings = project(leaves_embeddings).detach().cpu().numpy()
 
-    # np.save("leaves_emb.npy", leaves_embeddings)
+    # Sauvegarde des embeddings des feuilles dans le même dossier que le modèle
     np.save(f"{model_dir}/leaves_emb.npy", leaves_embeddings)
-    # sauvegarde les embeddings des feuilles dans le même dossier que le modèle
-
+    # sauvegarde l'arbre décodé dans le même dossier que le modèle
     nx.write_gpickle(tree, f"{model_dir}/tree.gpickle")
+
+    BUCKET = "sophieperrinlyon2"
+    PREFIX = "albert/"
+
+    fs = s3fs.S3FileSystem()
+
+    # Upload vers S3
+    files_to_upload = [
+        (f"{model_dir}/leaves_emb.npy", f"{BUCKET}/{PREFIX}leaves_emb.npy"),
+        (f"{model_dir}/tree.gpickle", f"{BUCKET}/{PREFIX}tree.gpickle")
+        ]
+
+    for local_path, s3_path in files_to_upload:
+        with fs.open(s3_path, "wb") as f_out:
+            with open(local_path, "rb") as f_in:
+                f_out.write(f_in.read())
+        print(f"  ✔ Uploaded {os.path.basename(local_path)} to s3://{s3_path}")
