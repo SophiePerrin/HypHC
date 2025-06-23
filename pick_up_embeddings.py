@@ -27,14 +27,53 @@ def get_latest_model_dir(path):
 
     # Trie par date de dernière modification (dossier le plus récent)
     latest_dir = max(subdirs, key=os.path.getmtime)
-    return latest_dir
+
+    subsubdirs = [os.path.join(latest_dir, d) for d in os.listdir(latest_dir)
+                if os.path.isdir(os.path.join(latest_dir, d))]
+
+    if not subdirs:
+        raise FileNotFoundError(f"Aucun sous-dossier trouvé dans {latest_dir}")
+
+    # Trie par date de dernière modification (dossier le plus récent)
+    latest_subdir = max(subsubdirs, key=os.path.getmtime)
+
+    return latest_subdir
 
 
-dir = "/home/onyxia/work/HypHC/embeddings/zoo"
+dir = "/home/onyxia/work/HypHC/results"
 model_dir = get_latest_model_dir(dir)
 # fin de l'ajout
 
 
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser("Hyperbolic Hierarchical Clustering.")
+    parser.add_argument("--model_dir", type=str, default=None,
+                        help="Path to a directory with model_{seed}.pkl and config.json")
+    parser.add_argument("--seed", type=str, default="0", help="Model seed to use")
+    parser.add_argument("--use_latest", action="store_true",
+                        help="Use the latest model directory from the default results path")
+
+    args = parser.parse_args()
+
+    if args.use_latest:
+        default_base_dir = "/home/onyxia/work/HypHC/results"
+        args.model_dir = get_latest_model_dir(default_base_dir)
+        print(f"Using latest model directory: {args.model_dir}")
+
+    if args.model_dir is None:
+        raise ValueError("You must provide --model_dir or use --use_latest")
+
+    # charge la config + le dataset
+    config_path = os.path.join(args.model_dir, "config.json")
+    if not os.path.exists(config_path):
+        raise FileNotFoundError(f"config.json not found in {args.model_dir}")
+    config = json.load(open(config_path))
+    config_args = argparse.Namespace(**config)
+
+    # charge les données
+    _, y_true, similarities = load_data(config_args.dataset)
+
+    '''
 if __name__ == "__main__":
     parser = argparse.ArgumentParser("Hyperbolic Hierarchical Clustering.")
     parser.add_argument("--model_dir", type=str, required=True,
@@ -42,12 +81,12 @@ if __name__ == "__main__":
                         )
     parser.add_argument("--seed", type=str, default=0, help="model seed to use")
     args = parser.parse_args()
-
+    
     # load dataset
     config = json.load(open(os.path.join(args.model_dir, "config.json")))
     config_args = argparse.Namespace(**config)
     _, y_true, similarities = load_data(config_args.dataset)
-
+    '''
     # build HypHC model
     model = HypHC(similarities.shape[0], config_args.rank, config_args.temperature, config_args.init_size,
                   config_args.max_scale)

@@ -1,0 +1,11 @@
+2025-06-23 07:46:20,641 INFO Using seed 1234.
+2025-06-23 07:46:20,641 INFO Using double precision.
+2025-06-23 07:46:20,705 INFO Found credentials in environment variables.
+2025-06-23 07:46:35,522 INFO Generating triples.
+2025-06-23 07:46:44,529 INFO Total of 1000 triples
+2025-06-23 07:46:48,559 INFO Start training
+2025-06-23 07:46:48,927 INFO 	 Epoch 0 | average train loss: 0.004527
+2025-06-23 07:46:48,927 INFO Optimization finished.
+2025-06-23 07:46:48,928 INFO Saving best model at /home/onyxia/work/HypHC/results/reddit/8b8e6a8f6bc68b435b90a095ec05a8b6f5b4678e4db3a5aee012e036ba2eaadc/model_1234.pkl
+2025-06-23 07:46:48,928 INFO Decoding embeddings.
+2025-06-23 07:47:07,800 INFO Dasgupta's cost:	1144022246.0000
