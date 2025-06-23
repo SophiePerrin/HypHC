@@ -1,6 +1,6 @@
 # Hyperbolic Hierarchical Clustering (HypHC)
 
-This code is the official PyTorch implementation of the NeurIPS 2020 paper: 
+This code is adapted from the official PyTorch implementation of the NeurIPS 2020 paper: 
 > **From Trees to Continuous Embeddings and Back: Hyperbolic Hierarchical Clustering**\
 > Ines Chami, Albert Gu, Vaggos Chatziafratis and Christopher Ré\
 > Stanford University\
@@ -17,23 +17,43 @@ This code is the official PyTorch implementation of the NeurIPS 2020 paper:
 
 This code has been tested with python3.7. First, create a virtual environment (or conda environment) and install the dependencies:
 
-```python3 -m venv hyphc_env```
+```#Script à automatiser pour création environnement adapté HypHC
 
-```source hyphc_env/bin/activate```
+cd HypHC
 
-```pip install -r requirements.txt``` 
+mkdir -p ~/miniconda3
+wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda3/miniconda.sh
+bash ~/miniconda3/miniconda.sh -b -u -p ~/miniconda3
+rm ~/miniconda3/miniconda.sh
 
-Then install the ```mst``` and ```unionfind``` packages which are used to decode embeddings into trees and compute the discrete Dasgupta Cost efficiently: 
+source ~/miniconda3/bin/activate
 
-```cd mst; python setup.py build_ext --inplace```
+conda create -n hyphc_env python=3.7
+conda activate hyphc_env
+python --version
 
-```cd unionfind; python setup.py build_ext --inplace```
 
-## Datasets
+#Puis installation de HypHC :
+
+pip install -r requirements.txt
+cd mst; python setup.py build_ext --inplace
+cd ..
+cd unionfind; python setup.py build_ext --inplace
+cd ..
+
+pip install s3fs
+
+source ./set_envS3.sh```
+
+## Datasets : for using the HypHC examples : 
 
 ```source download_data.sh```
 
 This will download the zoo, iris and glass datasets from the UCI machine learning repository. Please refer to the paper for the download links of the other datasets used in the paper. 
+
+## For using weibo or reddit datasets :
+
+see Code Usage below
 
 ## Code Usage
 
@@ -41,9 +61,10 @@ This will download the zoo, iris and glass datasets from the UCI machine learnin
 
 To use the code, first set environment variables in each shell session:
 
-```source set_env.sh```
+```source set_env.sh``` (or, here, ```source set_envS3.sh```)
 
 To train the HypHC mode, use the train script:
+
 ```
 python train.py
     optional arguments:
@@ -75,6 +96,59 @@ We provide examples of training commands for the zoo, iris and glass datasets. F
 ```source examples/run_zoo.sh``` 
 
 This will create an `embedding` directory and save training logs, embeddings and the configuration parameters in a `embedding/zoo/[unique_id]` where the unique id is based on the configuration parameters used to train the model.   
+
+### weibo and reddit datasets :
+
+# "reddit"
+python train.py \
+  --seed 1234 \
+  --epochs 10 \
+  --batch_size 256 \
+  --learning_rate 0.001 \
+  --eval_every 10 \
+  --patience 20 \
+  --optimizer RAdam \
+  --save 1 \
+  --fast_decoding 1 \
+  --num_samples 1000 \
+  --dtype double \
+  --rank 2 \
+  --temperature 0.01 \
+  --init_size 0.001 \
+  --anneal_every 20 \
+  --anneal_factor 1.0 \
+  --max_scale 0.999 \
+  --dataset reddit
+
+
+# "weibo"
+python train.py \
+  --seed 1234 \
+  --epochs 10 \
+  --batch_size 256 \
+  --learning_rate 0.001 \
+  --eval_every 10 \
+  --patience 20 \
+  --optimizer RAdam \
+  --save 1 \
+  --fast_decoding 1 \
+  --num_samples 10000 \
+  --dtype double \
+  --rank 2 \
+  --temperature 0.01 \
+  --init_size 0.001 \
+  --anneal_every 20 \
+  --anneal_factor 1.0 \
+  --max_scale 0.999 \
+  --dataset weibo
+
+# Then, we can retrieve the hyperbolic embeddings for using it with GADBench models :
+
+python pick_up_embeddings.py --use_latest --seed 1234
+
+or 
+
+python pick_up_embeddings.py --model_dir /chemin/vers/le/modele --seed 1234
 
 ## Citation
 

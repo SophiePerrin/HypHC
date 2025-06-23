@@ -114,7 +114,22 @@ def train(args):
                 param_group['lr'] *= args.anneal_factor
                 lr = param_group['lr']
             logging.info("Annealing learning rate to: {}".format(lr))
+    ######
+    logging.info("Optimization finished.")
 
+    if best_model is not None:
+        logging.info("Loading best model before evaluation.")
+        model.load_state_dict(best_model)
+        model_to_save = best_model
+    else:
+        logging.warning("No best model selected during training. Saving current model state instead.")
+        model_to_save = model.state_dict()
+
+    if args.save:
+        logging.info("Saving model at {}".format(save_path))
+        torch.save(model_to_save, save_path)
+
+    '''
     logging.info("Optimization finished.")
     if best_model is not None:
         # load best model
@@ -124,7 +139,7 @@ def train(args):
         # save best embeddings
         logging.info("Saving best model at {}".format(save_path))
         torch.save(best_model, save_path)
-
+    '''
     # evaluation
     model.eval()
     logging.info("Decoding embeddings.")
