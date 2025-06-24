@@ -122,7 +122,7 @@ if __name__ == "__main__":
     # Affiche pour debug
     print(f"[INFO] S3 endpoint utilisé : {endpoint}")
 
-    fs = s3fs.S3FileSystem(client_kwargs={'endpoint_url': os.getenv("AWS_S3_ENDPOINT")})
+    fs = s3fs.S3FileSystem(client_kwargs={'endpoint_url': endpoint})
 
     # Upload vers S3
     files_to_upload = [
@@ -135,4 +135,7 @@ if __name__ == "__main__":
             with open(local_path, "rb") as f_in:
                 f_out.write(f_in.read())
         print(f"  ✔ Uploaded {os.path.basename(local_path)} to s3://{s3_path}")
+
+
+
 
