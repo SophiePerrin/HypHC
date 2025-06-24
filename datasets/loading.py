@@ -116,7 +116,3 @@ def load_data_s3(name, dataset_name):
     # np.save(local_path, array)
 
     return array
-
-
-
-# Vérifie que ton endpoint S3 (AWS_S3_ENDPOINT) est bien défini dans tes variables d’environnement.

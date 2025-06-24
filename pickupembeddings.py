@@ -1,4 +1,4 @@
-"""Script to visualize the HypHC clustering."""
+"""Script to adownload the HypHC clustering embeddings."""
 
 import argparse
 import json
@@ -135,7 +135,4 @@ if __name__ == "__main__":
             with open(local_path, "rb") as f_in:
                 f_out.write(f_in.read())
         print(f"  ✔ Uploaded {os.path.basename(local_path)} to s3://{s3_path}")
-
-
-
-
+        
