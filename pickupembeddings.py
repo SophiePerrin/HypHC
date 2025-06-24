@@ -110,7 +110,19 @@ if __name__ == "__main__":
     BUCKET = "sophieperrinlyon2"
     PREFIX = "albert/"
 
-    fs = s3fs.S3FileSystem()
+    # Récupération de l'endpoint depuis l’environnement
+    raw_endpoint = os.getenv("AWS_S3_ENDPOINT", "").strip()
+
+    # Ajoute le protocole si absent
+    if not raw_endpoint.startswith("http"):
+        endpoint = f"https://{raw_endpoint}"
+    else:
+        endpoint = raw_endpoint
+
+    # Affiche pour debug
+    print(f"[INFO] S3 endpoint utilisé : {endpoint}")
+
+    fs = s3fs.S3FileSystem(client_kwargs={'endpoint_url': os.getenv("AWS_S3_ENDPOINT")})
 
     # Upload vers S3
     files_to_upload = [
@@ -123,3 +135,4 @@ if __name__ == "__main__":
             with open(local_path, "rb") as f_in:
                 f_out.write(f_in.read())
         print(f"  ✔ Uploaded {os.path.basename(local_path)} to s3://{s3_path}")
+
