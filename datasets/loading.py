@@ -43,7 +43,7 @@ def load_data(dataset, normalize=True):
         if dataset in GADBench_datasets:
             x = load_data_s3("x", dataset)
             y = load_data_s3("y", dataset)
-            similarities = load_data_s3("A", dataset)
+            similarities = load_data_s3("similarities", dataset)
         else:
             raise NotImplementedError("Unknown dataset {}.".format(dataset))
                
