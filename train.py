@@ -18,6 +18,33 @@ from model.hyphc import HypHC
 from utils.metrics import dasgupta_cost
 from utils.training import add_flags_from_config, get_savedir
 
+# Calcul de la similarité cosine entre features des noeuds par blocs (pour ne pas exploser la mémoire dispo)
+# pour les datasets weibo et reddit de GADBench
+def compute_cosine_similarity_matrix_blockwise(X, block_size=1000):
+    N = X.shape[0]
+    X = X.astype(np.float32)
+
+    # Normalisation des vecteurs ligne de X
+    norms = np.linalg.norm(X, axis=1, keepdims=True)
+    X = X / (norms + 1e-8)  # pour éviter la division par zéro
+
+    # Matrice de sortie
+    S = np.empty((N, N), dtype=np.float32)
+
+    for i in range(0, N, block_size):
+        Xi = X[i:min(i+block_size, N)]
+        for j in range(0, N, block_size):
+            Xj = X[j:min(j+block_size, N)]
+            S_block = np.dot(Xi, Xj.T)
+            S[i:i+Xi.shape[0], j:j+Xj.shape[0]] = S_block
+
+    # transformation de la similarité cosine en une similarité comprise entre 0 et 1 
+    S = 0.5 * (1.0 + S)
+    S = np.clip(S, 0.0, 1.0)
+    # Diagonale à 1.0 (au cas où il y aurait un flottement numérique)
+    np.fill_diagonal(S, 1.0)
+    return S
+
 
 def train(args):
     logger = logging.getLogger()
@@ -56,6 +83,13 @@ def train(args):
 
     # create dataset
     x, y_true, similarities = load_data(args.dataset)
+
+# Calcul de la similarité cosine entre features des noeuds par blocs (pour ne pas exploser la mémoire dispo)
+    Scosine = compute_cosine_similarity_matrix_blockwise(x, block_size=1000)
+
+    similarities = alpha*A + (1-alpha)*Scosine
+
+
     dataset = HCDataset(x, y_true, similarities, num_samples=args.num_samples)
     dataloader = data.DataLoader(dataset, batch_size=args.batch_size, shuffle=True, num_workers=8, pin_memory=True)
 

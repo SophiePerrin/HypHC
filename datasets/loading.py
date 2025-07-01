@@ -16,7 +16,7 @@ GADBench_datasets = [
 ]
 
 
-def load_data(dataset, normalize=True):
+def load_data(dataset, normalize=True, alpha=None):
     """Load dataset.
 
     @param dataset: dataset name
@@ -43,7 +43,8 @@ def load_data(dataset, normalize=True):
         if dataset in GADBench_datasets:
             x = load_data_s3("x", dataset)
             y = load_data_s3("y", dataset)
-            similarities = load_data_s3("similarities", dataset)
+            similarities = load_data_s3("A", dataset)   
+
         else:
             raise NotImplementedError("Unknown dataset {}.".format(dataset))
                
