@@ -18,6 +18,7 @@ from model.hyphc import HypHC
 from utils.metrics import dasgupta_cost
 from utils.training import add_flags_from_config, get_savedir
 
+
 # Calcul de la similarité cosine entre features des noeuds par blocs (pour ne pas exploser la mémoire dispo)
 # pour les datasets weibo et reddit de GADBench
 def compute_cosine_similarity_matrix_blockwise(X, block_size=1000):
@@ -46,6 +47,47 @@ def compute_cosine_similarity_matrix_blockwise(X, block_size=1000):
     return S
 
 
+# optimisation de l'hyperparamètre alpha pour calculer la matrice similarities optimale
+# pour minimiser la perte de Dasgupta relaxée en prenant en compte "à la bonne proportion"
+# la matrice d'adjacence du graphe et Scosine celle des cosine entre features des noeuds
+def optimize_alpha_by_training(A, Scosine, alphas, args_template):
+    """
+    Optimise alpha pour entraîner HypHC sur différentes matrices de similarité.
+
+    Args:
+        A, Scosine: matrices numpy (n x n)
+        alphas: liste de float ∈ [0,1]
+        args_template: Namespace contenant les configs de base (sans .similarities)
+
+    Returns:
+        Liste des résultats, meilleur alpha et coût associé
+    """
+    import copy
+
+    results = []
+    best_result = None
+
+    for alpha in alphas:
+
+        args = copy.deepcopy(args_template)
+        args.alpha = alpha  # pour log uniquement
+        args.save = False  # désactive sauvegarde
+
+        print(f"\n[α={alpha:.2f}] Entraînement...")
+        cost = train(args)
+        print(f"→ Coût Dasgupta = {cost:.4f}")
+
+        result = {'alpha': alpha, 'cost': cost}
+        results.append(result)
+
+        if best_result is None or cost < best_result['cost']:
+            best_result = result
+
+    print(f"\n✅ Meilleur alpha : {best_result['alpha']:.2f} → coût Dasgupta = {best_result['cost']:.4f}")
+    return results, best_result['alpha'], best_result['cost']
+
+
+# fonction pour entraîner le modèle
 def train(args):
     logger = logging.getLogger()
     logger.setLevel(logging.INFO)
@@ -82,14 +124,25 @@ def train(args):
         torch.set_default_dtype(torch.float64)
 
     # create dataset
-    x, y_true, similarities = load_data(args.dataset)
+    # x, y_true, similarities = load_data(args.dataset)
 
-# Calcul de la similarité cosine entre features des noeuds par blocs (pour ne pas exploser la mémoire dispo)
+    # ici on modifie le programme d'origine pour introduire Scosine et l'optimisation de alpha
+
+    x, y_true, A = load_data(args.dataset)      # #####
+
+    # Calcul de la similarité cosine
     Scosine = compute_cosine_similarity_matrix_blockwise(x, block_size=1000)
 
-    similarities = alpha*A + (1-alpha)*Scosine
+    # Si alpha est fourni dans args, mélange les deux
+    if hasattr(args, "alpha") and args.alpha is not None:
+        alpha = args.alpha
+    else:
+        raise ValueError("Tu dois fournir args.alpha")
 
+    # Construction de la matrice finale
+    similarities = alpha * A + (1 - alpha) * Scosine  # ######
 
+    # ici on reprend le cours du programme d'origine
     dataset = HCDataset(x, y_true, similarities, num_samples=args.num_samples)
     dataloader = data.DataLoader(dataset, batch_size=args.batch_size, shuffle=True, num_workers=8, pin_memory=True)
 
@@ -183,12 +236,34 @@ def train(args):
 
     if args.save:
         logger.removeHandler(hdlr)
-    return
+    return cost  #
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser("Hyperbolic Hierarchical Clustering.")
     parser = add_flags_from_config(parser, config_args)
     args = parser.parse_args()
-    train(args)
 
+    if getattr(args, "optimize_alpha", False):      # ####
+        
+        optimize_alpha_by_training(args.alphas, args)
+
+    else:                                           # ####
+        train(args)
+
+
+
+'''
+python train.py \
+  --dataset reddit \
+  --alpha 0.5 \
+  --epochs 50
+
+ou 
+
+python train.py \
+  --dataset reddit \
+  --optimize_alpha \
+  --alphas 0.0 0.25 0.5 0.75 1.0 \
+  --epochs 50
+'''

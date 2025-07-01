@@ -39,6 +39,24 @@ def add_flags_from_config(parser, config_dict):
         try:
             if isinstance(default, dict):
                 parser = add_flags_from_config(parser, default)
+                
+            elif isinstance(default, bool):
+                # ✅ NOUVEAU : ajout explicite des booléens comme flags (--flag active le bool)
+                parser.add_argument(
+                    f"--{key}",
+                    action="store_true",
+                    help=f"Default: {default}"
+                )
+
+            elif isinstance(default, list) and default:
+                # ✅ NOUVEAU : ajout des listes avec nargs='+'
+                parser.add_argument(
+                    f"--{key}",
+                    type=type(default[0]),  # ex : float pour [0.0, 0.5, 1.0]
+                    nargs='+',
+                    default=default
+                )
+
             else:
                 parser.add_argument(f"--{param}", type=OrNone(default), default=default)
         except argparse.ArgumentError:
