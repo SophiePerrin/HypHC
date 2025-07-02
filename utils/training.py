@@ -16,7 +16,6 @@ def str2bool(v):
     else:
         raise argparse.ArgumentTypeError('Boolean value expected.')
 
-
 def add_flags_from_config(parser, config_dict):
     """Adds a flag (and default value) to an ArgumentParser for each parameter in a config."""
 
@@ -43,7 +42,7 @@ def add_flags_from_config(parser, config_dict):
             elif isinstance(default, bool):
                 # ✅ NOUVEAU : ajout explicite des booléens comme flags (--flag active le bool)
                 parser.add_argument(
-                    f"--{key}",
+                    f"--{param}",
                     action="store_true",
                     help=f"Default: {default}"
                 )
@@ -51,7 +50,7 @@ def add_flags_from_config(parser, config_dict):
             elif isinstance(default, list) and default:
                 # ✅ NOUVEAU : ajout des listes avec nargs='+'
                 parser.add_argument(
-                    f"--{key}",
+                    f"--{param}",
                     type=type(default[0]),  # ex : float pour [0.0, 0.5, 1.0]
                     nargs='+',
                     default=default

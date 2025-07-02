@@ -241,6 +241,7 @@ def train(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser("Hyperbolic Hierarchical Clustering.")
+    print("config_args =", config_args) #
     parser = add_flags_from_config(parser, config_args)
     args = parser.parse_args()
 
@@ -256,8 +257,9 @@ if __name__ == "__main__":
 '''
 python train.py \
   --dataset reddit \
+  --num_samples 100 \
   --alpha 0.5 \
-  --epochs 50
+  --epochs 5
 
 ou 
 
