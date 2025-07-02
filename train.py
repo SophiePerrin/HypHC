@@ -50,7 +50,7 @@ def compute_cosine_similarity_matrix_blockwise(X, block_size=1000):
 # optimisation de l'hyperparamètre alpha pour calculer la matrice similarities optimale
 # pour minimiser la perte de Dasgupta relaxée en prenant en compte "à la bonne proportion"
 # la matrice d'adjacence du graphe et Scosine celle des cosine entre features des noeuds
-def optimize_alpha_by_training(A, Scosine, alphas, args_template):
+def optimize_alpha_by_training(alphas, args_template):
     """
     Optimise alpha pour entraîner HypHC sur différentes matrices de similarité.
 
@@ -258,14 +258,15 @@ if __name__ == "__main__":
 python train.py \
   --dataset reddit \
   --num_samples 100 \
-  --alpha 0.5 \
-  --epochs 5
+  --alpha 0.2 \
+  --epochs 2
 
 ou 
 
 python train.py \
   --dataset reddit \
+  --num_samples 100 \
   --optimize_alpha \
   --alphas 0.0 0.25 0.5 0.75 1.0 \
-  --epochs 50
+  --epochs 2
 '''
