@@ -73,6 +73,7 @@ if __name__ == "__main__":
     config = json.load(open(config_path))
     config_args = argparse.Namespace(**config)
 
+
     # charge les données
     _, y_true, similarities = load_data(config_args.dataset)
 
@@ -105,11 +106,17 @@ if __name__ == "__main__":
     leaves_embeddings = project(leaves_embeddings).detach().cpu().numpy()
 
     # Sauvegarde des embeddings des feuilles dans le même dossier que le modèle
-    np.save(f"{model_dir}/leaves_emb.npy", leaves_embeddings)
+    # np.save(f"{model_dir}/leaves_emb.npy", leaves_embeddings)
+
+    emb_name = f"leaves_emb_{config_args.dataset}.npy"
+    np.save(os.path.join(model_dir, emb_name), leaves_embeddings)
+
     # sauvegarde l'arbre décodé dans le même dossier que le modèle
     # nx.write_gpickle(tree, f"{model_dir}/tree.gpickle")
+    
+    tree_name = f"tree_{config_args.dataset}.gpickle"
 
-    with open(f"{model_dir}/tree.gpickle", "wb") as f: # adapté pour l'environnement python 3.8
+    with open(os.path.join(model_dir, tree_name), "wb") as f: # adapté pour l'environnement python 3.8
         pickle.dump(tree, f)
 
     BUCKET = "sophieperrinlyon2"
@@ -130,9 +137,15 @@ if __name__ == "__main__":
     fs = s3fs.S3FileSystem(client_kwargs={'endpoint_url': endpoint})
 
     # Upload vers S3
+    '''
     files_to_upload = [
         (f"{model_dir}/leaves_emb.npy", f"{BUCKET}/{PREFIX}leaves_emb.npy"),
         (f"{model_dir}/tree.gpickle", f"{BUCKET}/{PREFIX}tree.gpickle")
+        ]
+    '''
+    files_to_upload = [
+        (os.path.join(model_dir, emb_name), f"{BUCKET}/{PREFIX}{emb_name}"),
+        (os.path.join(model_dir, tree_name), f"{BUCKET}/{PREFIX}{tree_name}")
         ]
 
     for local_path, s3_path in files_to_upload:
