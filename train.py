@@ -257,7 +257,7 @@ if __name__ == "__main__":
 '''
 python train.py \
   --dataset reddit \
-  --num_samples 100 \
+  --num_samples 1000 \
   --alpha 0.2 \
   --epochs 2
 
@@ -265,8 +265,8 @@ ou
 
 python train.py \
   --dataset reddit \
-  --num_samples 100 \
+  --num_samples 1000 \
   --optimize_alpha \
   --alphas 0.0 0.25 0.5 0.75 1.0 \
-  --epochs 2
+  --epochs 50
 '''

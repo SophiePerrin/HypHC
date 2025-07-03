@@ -1,5 +1,11 @@
-cython==0.29.21
-networkx==2.2
-numpy==1.19.2
-torch==1.6.0
-tqdm==4.31.1
+# cython==0.29.21
+# networkx==2.2
+# numpy==1.19.2
+# torch==1.6.0
+# tqdm==4.31.1
+
+cython>=0.29
+networkx>=2.8
+numpy>=1.21
+tqdm>=4.60
+# torch est installé à part, donc ne surtout pas l’ajouter ici
