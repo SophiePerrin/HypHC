@@ -10,6 +10,8 @@ from datasets.loading import load_data
 from model.hyphc import HypHC
 from utils.poincare import project
 import networkx as nx
+import pickle
+
 
 # Ajout (pour définir le dossier dans lequel on sauvegardera les embeddings)
 
@@ -105,7 +107,10 @@ if __name__ == "__main__":
     # Sauvegarde des embeddings des feuilles dans le même dossier que le modèle
     np.save(f"{model_dir}/leaves_emb.npy", leaves_embeddings)
     # sauvegarde l'arbre décodé dans le même dossier que le modèle
-    nx.write_gpickle(tree, f"{model_dir}/tree.gpickle")
+    # nx.write_gpickle(tree, f"{model_dir}/tree.gpickle")
+
+    with open(f"{model_dir}/tree.gpickle", "wb") as f: # adapté pour l'environnement python 3.8
+        pickle.dump(tree, f)
 
     BUCKET = "sophieperrinlyon2"
     PREFIX = "albert/"

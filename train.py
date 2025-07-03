@@ -269,4 +269,11 @@ python train.py \
   --optimize_alpha \
   --alphas 0.0 0.25 0.5 0.75 1.0 \
   --epochs 50
+
+python train.py \
+  --dataset weibo \
+  --num_samples 1000 \
+  --optimize_alpha \
+  --alphas 0.0 0.25 0.5 0.75 1.0 \
+  --epochs 50
 '''
