@@ -84,6 +84,14 @@ def optimize_alpha_by_training(alphas, args_template):
             best_result = result
 
     print(f"\n✅ Meilleur alpha : {best_result['alpha']:.2f} → coût Dasgupta = {best_result['cost']:.4f}")
+
+    # 🔽 Entraînement final avec sauvegarde activée
+    best_args = copy.deepcopy(args_template)
+    best_args.alpha = best_result['alpha']
+    best_args.save = True  # active la sauvegarde
+    print("\n📦 Réentraînement final avec sauvegarde du meilleur modèle")
+    train(best_args)
+
     return results, best_result['alpha'], best_result['cost']
 
 
