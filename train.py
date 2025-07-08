@@ -166,7 +166,7 @@ def train(args):
 
     # train model
     best_cost = np.inf
-    best_model = None
+    # best_model = None
     best_model_buffer = None # ###
     counter = 0
     logging.info("Start training")
@@ -217,7 +217,6 @@ def train(args):
     ######
     logging.info("Optimization finished.")
 
-
     if best_model_buffer is not None:
         logging.info("Loading best model before evaluation.")
         best_model_buffer.seek(0)
@@ -227,6 +226,12 @@ def train(args):
     else:
         logging.warning("No best model selected during training.")
         model_to_save = model.state_dict()
+    
+    if args.save:
+        logging.info("Saving model at {}".format(save_path))
+        torch.save(model_to_save, save_path)
+        logger.removeHandler(hdlr)
+        hdlr.close()
     '''
     if best_model is not None:
         logging.info("Loading best model before evaluation.")
@@ -303,4 +308,13 @@ python train.py \
   --optimize_alpha \
   --alphas 0.0 0.25 0.5 0.75 1.0 \
   --epochs 50
+
+
+python train.py \
+  --dataset reddit \
+  --num_samples 1000 \
+  --alpha 1 \
+  --epochs 3 \
+  --eval_every 1
+
 '''
