@@ -122,6 +122,7 @@ def analyze_feature_redundancy(X, variance_thresh=1e-6, corr_thresh=0.95, pca_va
     print("Écart-type min (= 1 si déjà centrée réduite) :", stds.min())
     print("Écart-type max (= 1 si déjà centrée réduite) :", stds.max())
 
+    print(f"type de X : {type(X)}")
 
     # Résultat : ni reddit ni weibo ne sont centrés réduits, alors qu'ils doivent l'être pour effectuer la PCA
 
@@ -134,6 +135,7 @@ def analyze_feature_redundancy(X, variance_thresh=1e-6, corr_thresh=0.95, pca_va
     print("Moyenne max vérif (= 0 si centrée réduite):", means.max())
     print("Écart-type min vérif (= 1 si centrée réduite) :", stds.min())
     print("Écart-type max vérif (= 1 si centrée réduite) :", stds.max())
+    print(f"2e type de X : {type(X)}")
 
     # 2. Calculer la variance
     variances = X.var(axis=0)
@@ -143,6 +145,7 @@ def analyze_feature_redundancy(X, variance_thresh=1e-6, corr_thresh=0.95, pca_va
 
     # 3. Filtrer les colonnes à faible variance
     X_clean = X[:, var_idx]
+    print(f"type de X_clean : {type(X_clean)}")
 
     # 5. Features très corrélées (calculé sur X d'origine, pas X_clean)
     corr_matrix = np.corrcoef(X, rowvar=False)
@@ -178,9 +181,11 @@ def analyze_feature_redundancy(X, variance_thresh=1e-6, corr_thresh=0.95, pca_va
     print("Écart-type min vérif (= 1 si centrée réduite) :", stds.min())
     print("Écart-type max vérif (= 1 si centrée réduite) :", stds.max())
 
+    print(f"type de X_pca : {type(X_pca)}")
 
     # 8. Remplacer les features de x par celles transformées par la PCA
     X_pca = pca.transform(X_clean)
+    print(f"2e type de X_pca : {type(X_pca)}")
 
     # 9. Retourner les résultats
     return {
@@ -233,10 +238,11 @@ def train(args):
     # ici on modifie le programme d'origine pour introduire Scosine et l'optimisation de alpha
 
     x_dep, y_true, A = load_data(args.dataset)      # #####
-
+    print(f"type de x_dep : {type(x_dep)}")
     # réduction de dimension par PCA
-    x = analyze_feature_redundancy(x_dep, pca_variance=0.95)        # #####
-
+    result_pca = analyze_feature_redundancy(x_dep, pca_variance=0.95)        # #####
+    print(f"type de x : {type(x)}")
+    x = result_pca['x_pca']
     # Calcul de la similarité cosine
     Scosine = compute_cosine_similarity_matrix_blockwise(x, block_size=1000)
 
@@ -409,7 +415,7 @@ python train.py \
 
 
 python train.py \
-  --dataset reddit \
+  --dataset weibo \
   --num_samples 100 \
   --alpha 1 \
   --epochs 1 \
