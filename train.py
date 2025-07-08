@@ -6,6 +6,7 @@ import logging
 import os
 
 import numpy as np
+import io # ###
 import torch
 import torch.utils.data as data
 from tqdm import tqdm
@@ -166,6 +167,7 @@ def train(args):
     # train model
     best_cost = np.inf
     best_model = None
+    best_model_buffer = None # ###
     counter = 0
     logging.info("Start training")
     for epoch in range(args.epochs):
@@ -194,7 +196,10 @@ def train(args):
             if cost < best_cost:
                 counter = 0
                 best_cost = cost
-                best_model = model.state_dict()
+                # best_model = model.state_dict()
+                best_model_buffer = io.BytesIO()                    # ###
+                torch.save(model.state_dict(), best_model_buffer)   # ###
+
             else:
                 counter += 1
                 if counter == args.patience:
@@ -212,10 +217,24 @@ def train(args):
     ######
     logging.info("Optimization finished.")
 
+
+    if best_model_buffer is not None:
+        logging.info("Loading best model before evaluation.")
+        best_model_buffer.seek(0)
+        best_model_state = torch.load(best_model_buffer)
+        model.load_state_dict(best_model_state)
+        model_to_save = best_model_state
+    else:
+        logging.warning("No best model selected during training.")
+        model_to_save = model.state_dict()
+    '''
     if best_model is not None:
         logging.info("Loading best model before evaluation.")
         model.load_state_dict(best_model)
         model_to_save = best_model
+    else:
+    logging.warning("No best model selected during training.")
+
     else:
         logging.warning("No best model selected during training. Saving current model state instead.")
         model_to_save = model.state_dict()
@@ -223,7 +242,7 @@ def train(args):
     if args.save:
         logging.info("Saving model at {}".format(save_path))
         torch.save(model_to_save, save_path)
-
+    '''
     '''
     logging.info("Optimization finished.")
     if best_model is not None:
