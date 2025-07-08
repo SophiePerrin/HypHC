@@ -7,6 +7,7 @@ import os
 
 import numpy as np
 import io # ###
+from sklearn.decomposition import PCA
 import torch
 import torch.utils.data as data
 from tqdm import tqdm
@@ -177,13 +178,6 @@ def analyze_feature_redundancy(X, variance_thresh=1e-6, corr_thresh=0.95, pca_va
     print("Écart-type min vérif (= 1 si centrée réduite) :", stds.min())
     print("Écart-type max vérif (= 1 si centrée réduite) :", stds.max())
 
-    # 7. Affichage des poids de la première composante
-    comp_weights = np.abs(pca.components_[0])
-    plt.bar(np.arange(len(comp_weights)), comp_weights)
-    plt.title("Poids absolus des features dans la 1re composante principale")
-    plt.xlabel("Feature index")
-    plt.ylabel("Poids")
-    plt.show()
 
     # 8. Remplacer les features de x par celles transformées par la PCA
     X_pca = pca.transform(X_clean)
