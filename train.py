@@ -241,8 +241,8 @@ def train(args):
     print(f"type de x_dep : {type(x_dep)}")
     # réduction de dimension par PCA
     result_pca = analyze_feature_redundancy(x_dep, pca_variance=0.95)        # #####
-    print(f"type de x : {type(x)}")
     x = result_pca['x_pca']
+    print(f"type de x : {type(x)}")
     # Calcul de la similarité cosine
     Scosine = compute_cosine_similarity_matrix_blockwise(x, block_size=1000)
 
