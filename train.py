@@ -95,6 +95,107 @@ def optimize_alpha_by_training(alphas, args_template):
 
     return results, best_result['alpha'], best_result['cost']
 
+#############################################
+
+# Fonction pour la réduction de dimension des features des noeuds
+
+#############################################
+
+
+def analyze_feature_redundancy(X, variance_thresh=1e-6, corr_thresh=0.95, pca_variance=0.95):
+   
+    # 1. vérifier leurs caractéristiques
+    print("Min global :", X.min())
+    print("Max global :", X.max())
+    
+    norms = np.linalg.norm(X, axis=1)
+    print("Norme moyenne :", norms.mean())
+    print("Norme max :", norms.max())
+    print("Ecart-type :", X.std(axis=0))
+
+    means = X.mean(axis=0)
+    stds = X.std(axis=0)
+
+    print("Moyenne min (= 0 si déjà centrée réduite):", means.min())
+    print("Moyenne max (= 0 si déjà centrée réduite):", means.max())
+    print("Écart-type min (= 1 si déjà centrée réduite) :", stds.min())
+    print("Écart-type max (= 1 si déjà centrée réduite) :", stds.max())
+
+
+    # Résultat : ni reddit ni weibo ne sont centrés réduits, alors qu'ils doivent l'être pour effectuer la PCA
+
+    X = (X - X.mean(axis=0)) / (X.std(axis=0) + 1e-8)
+
+    means = X.mean(axis=0)
+    stds = X.std(axis=0)
+
+    print("Moyenne min vérif (= 0 si centrée réduite):", means.min())
+    print("Moyenne max vérif (= 0 si centrée réduite):", means.max())
+    print("Écart-type min vérif (= 1 si centrée réduite) :", stds.min())
+    print("Écart-type max vérif (= 1 si centrée réduite) :", stds.max())
+
+    # 2. Calculer la variance
+    variances = X.var(axis=0)
+    var_idx = np.where(variances >= variance_thresh)[0]       # indices à garder
+    low_var_idx = np.where(variances < variance_thresh)[0]    # indices supprimés pour traçabilité
+    print(f"{len(low_var_idx)} features ont une variance < {variance_thresh} : {low_var_idx.tolist()} — elles sont supprimées avant la PCA")
+
+    # 3. Filtrer les colonnes à faible variance
+    X_clean = X[:, var_idx]
+
+    # 5. Features très corrélées (calculé sur X d'origine, pas X_clean)
+    corr_matrix = np.corrcoef(X, rowvar=False)
+    np.fill_diagonal(corr_matrix, 0)
+    
+    # Matrice de corrélation absolue
+    abs_corr = np.abs(corr_matrix)
+
+    # Indices de la partie triangulaire supérieure (hors diagonale)
+    triu_indices = np.triu_indices_from(abs_corr, k=1)
+
+    # Paires (i, j) avec leur valeur de corrélation
+    pair_scores = [(i, j, abs_corr[i, j]) for i, j in zip(*triu_indices)]  # 🔄 remplacé redundant_pairs
+
+    # Trier par corrélation décroissante
+    pair_scores.sort(key=lambda x: x[2], reverse=True)  # 🔄 nouveau : trie toutes les paires par corrélation
+
+    # Affichage
+    print("Top 10 des paires de features les plus corrélées :")  # 🔄 message plus clair
+    for i, j, score in pair_scores[:10]:                         # 🔄 on affiche les paires réellement les plus corrélées
+        print(f"  Feature {i} ↔ Feature {j} (corr = {corr_matrix[i, j]:.2f})")
+
+    # 6. PCA sur les features nettoyées
+    pca = PCA(n_components=pca_variance)
+    X_pca = pca.fit_transform(X_clean)
+    print(f"PCA a réduit de {X_clean.shape[1]} à {pca.n_components_} dimensions (variance expliquée : {pca_variance})")
+
+    means = X_pca.mean(axis=0)
+    stds = X_pca.std(axis=0)
+
+    print("Moyenne min vérif (= 0 si centrée réduite):", means.min())
+    print("Moyenne max vérif (= 0 si centrée réduite):", means.max())
+    print("Écart-type min vérif (= 1 si centrée réduite) :", stds.min())
+    print("Écart-type max vérif (= 1 si centrée réduite) :", stds.max())
+
+    # 7. Affichage des poids de la première composante
+    comp_weights = np.abs(pca.components_[0])
+    plt.bar(np.arange(len(comp_weights)), comp_weights)
+    plt.title("Poids absolus des features dans la 1re composante principale")
+    plt.xlabel("Feature index")
+    plt.ylabel("Poids")
+    plt.show()
+
+    # 8. Remplacer les features de x par celles transformées par la PCA
+    X_pca = pca.transform(X_clean)
+
+    # 9. Retourner les résultats
+    return {
+        'features_supprimées_par_variance': low_var_idx.tolist(),  
+        'top_corr_pairs': pair_scores[:10],                   
+        'pca_model': pca,
+        'x_pca': X_pca 
+    }
+
 
 # fonction pour entraîner le modèle
 def train(args):
@@ -137,7 +238,10 @@ def train(args):
 
     # ici on modifie le programme d'origine pour introduire Scosine et l'optimisation de alpha
 
-    x, y_true, A = load_data(args.dataset)      # #####
+    x_dep, y_true, A = load_data(args.dataset)      # #####
+
+    # réduction de dimension par PCA
+    x = analyze_feature_redundancy(x_dep, pca_variance=0.95)        # #####
 
     # Calcul de la similarité cosine
     Scosine = compute_cosine_similarity_matrix_blockwise(x, block_size=1000)
@@ -230,8 +334,8 @@ def train(args):
     if args.save:
         logging.info("Saving model at {}".format(save_path))
         torch.save(model_to_save, save_path)
-        logger.removeHandler(hdlr)
-        hdlr.close()
+        logger.removeHandler(hdlr)              # ##
+        hdlr.close()                            # ##
     '''
     if best_model is not None:
         logging.info("Loading best model before evaluation.")
@@ -312,9 +416,9 @@ python train.py \
 
 python train.py \
   --dataset reddit \
-  --num_samples 1000 \
+  --num_samples 100 \
   --alpha 1 \
-  --epochs 3 \
+  --epochs 1 \
   --eval_every 1
 
 '''
