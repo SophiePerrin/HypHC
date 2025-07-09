@@ -61,39 +61,56 @@ def optimize_alpha_by_training(alphas, args_template):
         args_template: Namespace contenant les configs de base (sans .similarities)
 
     Returns:
-        Liste des résultats, meilleur alpha et coût associé
+        Liste des résultats, meilleur alpha, coût associé et modèle entraîné
     """
-    import copy
+    import os
+    from argparse import Namespace
 
     results = []
     best_result = None
+    best_model_state = None
 
     for alpha in alphas:
-
-        args = copy.deepcopy(args_template)
-        args.alpha = alpha  # pour log uniquement
-        args.save = False  # désactive sauvegarde
+        args = Namespace(**vars(args_template))  # ✅ remplace deepcopy
+        args.alpha = alpha
+        args.save = False  # pas de sauvegarde pendant les tests
 
         print(f"\n[α={alpha:.2f}] Entraînement...")
-        cost = train(args)
-        print(f"→ Coût Dasgupta = {cost:.4f}")
 
+        cost, model_state = train(args)
+
+        if cost is None:
+            print(f"⏩ Entraînement sauté pour α={alpha:.2f} (modèle existant)")
+            continue
+
+        print(f"→ Coût Dasgupta = {cost:.4f}")
         result = {'alpha': alpha, 'cost': cost}
         results.append(result)
 
         if best_result is None or cost < best_result['cost']:
             best_result = result
+            best_model_state = model_state  # conserve le modèle associé
+
+    if best_result is None:
+        raise RuntimeError("Aucun entraînement réussi. Vérifie les paramètres ou supprime les anciens modèles sauvegardés.")
 
     print(f"\n✅ Meilleur alpha : {best_result['alpha']:.2f} → coût Dasgupta = {best_result['cost']:.4f}")
 
-    # 🔽 Entraînement final avec sauvegarde activée
-    best_args = copy.deepcopy(args_template)
+    # 🔽 Réentraînement final avec sauvegarde activée
+    best_args = Namespace(**vars(args_template))  # ✅ encore sans deepcopy
     best_args.alpha = best_result['alpha']
-    best_args.save = True  # active la sauvegarde
-    print("\n📦 Réentraînement final avec sauvegarde du meilleur modèle")
-    train(best_args)
+    best_args.save = True
 
-    return results, best_result['alpha'], best_result['cost']
+    print("\n📦 Réentraînement final avec sauvegarde du meilleur modèle")
+
+    save_dir = get_savedir(best_args)
+    save_path = os.path.join(save_dir, f"model_{best_args.seed}.pkl")
+    if os.path.exists(save_path):
+        print(f"✅ Modèle déjà sauvegardé pour α={best_result['alpha']:.2f} → pas de réentraînement.")
+    else:
+        _, best_model_state = train(best_args)
+
+    return results, best_result['alpha'], best_result['cost'], best_model_state
 
 
 # fonction pour entraîner le modèle
@@ -110,7 +127,8 @@ def train(args):
             if os.path.exists(save_path):
                 logging.info("Model with the same configuration parameters already exists.")
                 logging.info("Exiting")
-                return
+                return None, None
+
         else:
             os.makedirs(save_dir)
             with open(os.path.join(save_dir, "config.json"), 'w') as fp:
@@ -268,7 +286,7 @@ def train(args):
 
     if args.save:
         logger.removeHandler(hdlr)
-    return cost  #
+    return cost, model.state_dict() #
 
 
 if __name__ == "__main__":
