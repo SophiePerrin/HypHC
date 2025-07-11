@@ -21,6 +21,61 @@ def add_flags_from_config(parser, config_dict):
 
     def OrNone(default):
         def func(x):
+            if x.lower() == "none":
+                return None
+            elif default is None:
+                return str(x)
+            else:
+                return type(default)(x)
+        return func
+
+    for param in config_dict:
+        # ✅ Extraire (default, help) si c’est un tuple, sinon valeur seule
+        raw_value = config_dict[param]
+        if isinstance(raw_value, tuple):
+            default, help_text = raw_value
+        else:
+            default, help_text = raw_value, f"Default: {raw_value}"
+
+        try:
+            if isinstance(default, dict):
+                parser = add_flags_from_config(parser, default)
+
+            elif isinstance(default, bool):
+                parser.add_argument(
+                    f"--{param}",
+                    action="store_true",
+                    help=help_text
+                )
+
+            elif isinstance(default, list) and default:
+                parser.add_argument(
+                    f"--{param}",
+                    type=type(default[0]),
+                    nargs='+',
+                    default=default,
+                    help=help_text
+                )
+
+            else:
+                parser.add_argument(
+                    f"--{param}",
+                    type=OrNone(default),
+                    default=default,
+                    help=help_text
+                )
+
+        except argparse.ArgumentError:
+            print(f"Could not add flag for param {param} because it was already present.")
+
+    return parser
+
+'''
+def add_flags_from_config(parser, config_dict):
+    """Adds a flag (and default value) to an ArgumentParser for each parameter in a config."""
+
+    def OrNone(default):
+        def func(x):
             # Convert "none" to proper None object
             if x.lower() == "none":
                 return None
@@ -63,7 +118,7 @@ def add_flags_from_config(parser, config_dict):
                 f"Could not add flag for param {param} because it was already present."
             )
     return parser
-
+'''
 
 def hash_dict(values):
     """Hash of dict key, value pairs."""
