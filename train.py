@@ -191,7 +191,7 @@ def train(args):
     for epoch in range(args.epochs):
         model.train()
         total_loss = 0.0
-        with tqdm(total=len(dataloader), unit='ex') as bar:
+        with tqdm(total=len(dataloader), unit='ex', disable=args.no_progress) as bar:
             for step, (triple_ids, triple_similarities) in enumerate(dataloader):
                 triple_ids = triple_ids.to(device)
                 triple_similarities = triple_similarities.to(device)

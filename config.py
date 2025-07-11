@@ -27,5 +27,8 @@ config_args = {
 
     "optimize_alpha": False,                # ##
     "alphas": [0.0, 0.25, 0.5, 0.75, 1.0],  # ##
-    "alpha": 0.5                           # ##
+    "alpha": 0.5,                           # ##
+
+    "no_progress": (False, "Désactive les barres de progression pendant l'entraînement") # ##
+
 }
