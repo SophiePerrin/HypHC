@@ -16,6 +16,7 @@ def str2bool(v):
     else:
         raise argparse.ArgumentTypeError('Boolean value expected.')
 
+
 def add_flags_from_config(parser, config_dict):
     """Adds a flag (and default value) to an ArgumentParser for each parameter in a config."""
 
@@ -70,6 +71,7 @@ def add_flags_from_config(parser, config_dict):
 
     return parser
 
+
 '''
 def add_flags_from_config(parser, config_dict):
     """Adds a flag (and default value) to an ArgumentParser for each parameter in a config."""
@@ -119,6 +121,7 @@ def add_flags_from_config(parser, config_dict):
             )
     return parser
 '''
+
 
 def hash_dict(values):
     """Hash of dict key, value pairs."""

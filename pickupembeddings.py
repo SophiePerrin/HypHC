@@ -119,7 +119,7 @@ if __name__ == "__main__":
     with open(os.path.join(model_dir, tree_name), "wb") as f: # adapté pour l'environnement python 3.8
         pickle.dump(tree, f)
 
-    BUCKET = "sophieperrinlyon2"
+    BUCKET = "projet-clustering-ano-graphe"
     PREFIX = "albert/"
 
     # Récupération de l'endpoint depuis l’environnement
