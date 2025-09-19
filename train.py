@@ -4,6 +4,7 @@ import argparse
 import json
 import logging
 import os
+import csv   # 🔽 pour log CSV
 
 import numpy as np
 import io # ###
@@ -19,6 +20,37 @@ from model.hyphc import HypHC
 from utils.metrics import dasgupta_cost
 from utils.training import add_flags_from_config, get_savedir
 
+# =====================================================
+# 🔽 Dasgupta continu (relaxation directe)
+# =====================================================
+def dasgupta_continuous(embeddings, weights=None):
+    """
+    Continuous relaxation of Dasgupta cost directly from hyperbolic embeddings.
+    Embeddings are assumed in Poincaré ball (‖z‖<1).
+    """
+    n, d = embeddings.shape
+    device = embeddings.device
+
+    # norme au carré
+    norm_sq = torch.sum(embeddings**2, dim=1, keepdim=True)  # (n, 1)
+
+    # profondeur du LCA continu : max(norm(i), norm(j))
+    depth = torch.max(norm_sq.expand(n, n), norm_sq.t().expand(n, n))
+
+    if weights is None:
+        weights = torch.ones((n, n), device=device)
+    else:
+        weights = torch.tensor(weights, dtype=embeddings.dtype, device=device)
+
+    # somme sur i<j
+    mask = torch.triu(torch.ones_like(depth), diagonal=1)
+    cost = torch.sum(weights * depth * mask)
+    return cost
+
+
+# =====================================================
+# Similarité cosine par blocs
+# =====================================================
 
 # Calcul de la similarité cosine entre features des noeuds par blocs (pour ne pas exploser la mémoire dispo)
 # pour les datasets weibo et reddit de GADBench
@@ -187,6 +219,16 @@ def train(args):
     # best_model = None
     best_model_buffer = None  # ###
     counter = 0
+
+    # 🔽 CSV log + mémoire pour tracé
+    csv_path = os.path.join(get_savedir(args), "training_log.csv") if args.save else "training_log.csv"
+    if not os.path.exists(csv_path):
+        with open(csv_path, "w", newline="") as f:
+            writer = csv.writer(f)
+            writer.writerow(["epoch", "train_loss", "dasgupta_discrete", "dasgupta_continuous"])
+    log_data = []
+    # 🔽 Fin de CSV log + mémoire pour tracé
+
     logging.info("Start training")
     for epoch in range(args.epochs):
         model.train()
@@ -209,11 +251,22 @@ def train(args):
         if (epoch + 1) % args.eval_every == 0:
             model.eval()
             tree = model.decode_tree(fast_decoding=args.fast_decoding)
-            cost = dasgupta_cost(tree, similarities)
-            logging.info("{}:\t{:.4f}".format("Dasgupta's cost", cost))
-            if cost < best_cost:
+            disc_cost = dasgupta_cost(tree, similarities)
+
+            emb = model.embeddings.weight.detach()
+            cont_cost = dasgupta_continuous(emb, similarities).item()
+
+            logging.info(f"Dasgupta's cost (discrete):   {disc_cost:.4f}")
+            logging.info(f"Dasgupta's cost (continuous): {cont_cost:.4f}")
+
+            with open(csv_path, "a", newline="") as f:
+                writer = csv.writer(f)
+                writer.writerow([epoch+1, total_loss, disc_cost, cont_cost])
+            log_data.append([epoch+1, total_loss, disc_cost, cont_cost])
+
+            if disc_cost < best_cost:
                 counter = 0
-                best_cost = cost
+                best_cost = disc_cost
                 # best_model = model.state_dict()
                 best_model_buffer = io.BytesIO()                    # ###
                 torch.save(model.state_dict(), best_model_buffer)   # ###
