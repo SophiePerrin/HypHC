@@ -285,14 +285,26 @@ def train(args):
                     logging.info("Early stopping.")
                     break
 
-        # anneal temperature
-        if (epoch + 1) % args.anneal_every == 0:
+        # anneal temperature et learning rate (identique pour chacun de ces éléments)
+        if args.anneal_every and (epoch + 1) % args.anneal_every == 0:
             model.anneal_temperature(args.anneal_factor)
             logging.info("Annealing temperature to: {}".format(model.temperature))
             for param_group in optimizer.param_groups:
                 param_group['lr'] *= args.anneal_factor
                 lr = param_group['lr']
             logging.info("Annealing learning rate to: {}".format(lr))
+
+        # Annealing de la température (indépendant)
+        if args.anneal_temperature_every and (epoch + 1) % args.anneal_temperature_every == 0:
+            model.anneal_temperature(args.temperature_anneal_factor)
+            logging.info("Annealing temperature to: {:.4f}".format(model.temperature))
+
+        # Annealing du learning rate (indépendant)
+        if args.anneal_lr_every and (epoch + 1) % args.anneal_lr_every == 0:
+            for param_group in optimizer.param_groups:
+                param_group['lr'] *= args.lr_anneal_factor
+                lr = param_group['lr']
+            logging.info("Annealing learning rate to: {:.6f}".format(lr))
     ######
     logging.info("Optimization finished.")
 
