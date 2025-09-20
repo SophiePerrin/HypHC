@@ -5,7 +5,7 @@ import json
 import logging
 import os
 import csv   # 🔽 pour log CSV
-
+import matplotlib.pyplot as plt   # ### ajouté pour le diagnostic
 import numpy as np
 import io # ###
 import torch
@@ -259,6 +259,14 @@ def train(args):
             logging.info(f"Dasgupta's cost (discrete):   {disc_cost:.4f}")
             logging.info(f"Dasgupta's cost (continuous): {cont_cost:.4f}")
 
+            # === DIAGNOSTIC DES NORMES ===
+            norms = torch.norm(emb, dim=1).cpu().numpy()
+            logging.info(f"Embedding norms: mean={norms.mean():.4f}, min={norms.min():.4f}, max={norms.max():.4f}")
+            if not hasattr(train, "norm_history"):
+                train.norm_history = []
+            train.norm_history.append(norms)
+            # ===============================
+
             with open(csv_path, "a", newline="") as f:
                 writer = csv.writer(f)
                 writer.writerow([epoch+1, total_loss, disc_cost, cont_cost])
@@ -339,7 +347,29 @@ def train(args):
 
     if args.save:
         logger.removeHandler(hdlr)
-    return cost, model.state_dict() #
+
+    # ### Sauvegarde du diagnostic
+    import pandas as pd
+    norms_df = pd.DataFrame(train.norm_history)
+    save_dir = get_savedir(args)
+    os.makedirs(save_dir, exist_ok=True)
+    norms_csv_path = os.path.join(save_dir, f"embedding_norms_{args.seed}.csv")
+    norms_df.to_csv(norms_csv_path, index=False)
+    logging.info(f"Embedding norms per epoch saved to {norms_csv_path}")
+
+    # Optionnel : tracer un plot (si matplotlib disponible)
+    plt.figure(figsize=(8,6))
+    plt.plot([n.mean() for n in train.norm_history], marker='o')
+    plt.xlabel("Epoch")
+    plt.ylabel("Mean embedding norm")
+    plt.title("Evolution of embedding norms over training")
+    plt.grid(True)
+    plt_path = os.path.join(save_dir, f"embedding_norms_plot_{args.seed}.png")
+    plt.savefig(plt_path)
+    logging.info(f"Plot of embedding norms saved to {plt_path}")
+    plt.close()
+    
+    return cost, model.state_dict()  #
 
 
 if __name__ == "__main__":
