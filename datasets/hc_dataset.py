@@ -12,7 +12,7 @@ from datasets.triples import generate_all_triples, samples_triples, samples_trip
 class HCDataset(data.Dataset):
     """Hierarchical clustering dataset."""
 
-    def __init__(self, features, labels, similarities, num_samples):
+    def __init__(self, features, labels, similarities, num_samples, inter_prob=0.5):
         """Creates Hierarchical Clustering dataset with triples.
 
         @param labels: ground truth labels

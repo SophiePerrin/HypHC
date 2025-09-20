@@ -202,7 +202,8 @@ def train(args):
     similarities = alpha * A + (1 - alpha) * Scosine  # ######
 
     # ici on reprend le cours du programme d'origine
-    dataset = HCDataset(x, y_true, similarities, num_samples=args.num_samples)
+    #  dataset = HCDataset(x, y_true, similarities, num_samples=args.num_samples)
+    dataset = HCDataset(x, y_true, similarities, num_samples=args.num_samples, inter_prob=args.inter_prob)
     dataloader = data.DataLoader(dataset, batch_size=args.batch_size, shuffle=True, num_workers=8, pin_memory=True)
 
     # create model

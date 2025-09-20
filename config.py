@@ -12,7 +12,7 @@ config_args = {
     "save": 1,
     "fast_decoding": 1,
     "num_samples": -1,
-    "inter_prob":0.5,
+    "inter_prob": 0.5,
 
     # model
     "dtype": "double",
