@@ -370,7 +370,8 @@ def train(args):
     logging.info(f"Embedding norms per epoch saved to {norms_csv_path}")
 
     # Optionnel : tracer un plot (si matplotlib disponible)
-    plt.figure(figsize=(8,6))
+    plt.figure(figsize=(8, 6))
+    x = np.arange(args.eval_every, (len(train.norm_history)+1)*args.eval_every, args.eval_every)
     plt.plot([n.mean() for n in train.norm_history], marker='o')
     plt.xlabel("Epoch")
     plt.ylabel("Mean embedding norm")
