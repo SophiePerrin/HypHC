@@ -29,10 +29,10 @@ config_args = {
     "alphas": [0.0, 0.25, 0.5, 0.75, 1.0],  # ##
     "alpha": 0.5,                           # ##
 
-    'no_progress': (False, "Désactive les barres de progression pendant l'entraînement") # ##
+    'no_progress': (False, "Désactive les barres de progression pendant l'entraînement"), # ##
 
-    "anneal_temperature_every": (20, "Nombre d'epochs entre chaque annealing de la température"),
-    "temperature_anneal_factor": (1, "Facteur pour réduire la température à chaque annealing"),
-    "anneal_lr_every": (20, "Nombre d'epochs entre chaque annealing du learning rate"),
-    "lr_anneal_factor": (1, "Facteur pour réduire le learning rate à chaque annealing"),
+    "anneal_temperature_every": 20,
+    "temperature_anneal_factor": 1.0,
+    "anneal_lr_every": 20, 
+    "lr_anneal_factor": 1.0, 
 }
