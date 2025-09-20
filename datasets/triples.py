@@ -47,7 +47,9 @@ def samples_triples_balanced(n_nodes, num_samples, similarities, inter_prob=0.5)
     de manière heuristique via les similarités.
     
     similarities: matrice numpy n_nodes x n_nodes, valeurs entre 0 et 1
-    inter_prob: probabilité de tirer un triplet "inter-cluster"
+    inter_prob: probabilité de tirer un triplet "inter-cluster" (Plus inter_prob est élevé, 
+    plus le modèle sera forcé à séparer les clusters et donc aura un coût de Dasgupta discret
+    plus faible et une train loss (relaxation continue hyperbolique du coût de Dasgupta) plus haute.)
     """
     num_samples = int(num_samples)
     all_nodes = np.arange(n_nodes)

@@ -12,6 +12,7 @@ config_args = {
     "save": 1,
     "fast_decoding": 1,
     "num_samples": -1,
+    "inter_prob":0.5,
 
     # model
     "dtype": "double",
@@ -22,6 +23,11 @@ config_args = {
     "anneal_factor": 1.0,
     "max_scale": 1 - 1e-3,
 
+    "anneal_temperature_every": 20,
+    "temperature_anneal_factor": 1.0,
+    "anneal_lr_every": 20, 
+    "lr_anneal_factor": 1.0, 
+
     # dataset
     "dataset": "zoo",
 
@@ -31,8 +37,4 @@ config_args = {
 
     'no_progress': (False, "Désactive les barres de progression pendant l'entraînement"), # ##
 
-    "anneal_temperature_every": 20,
-    "temperature_anneal_factor": 1.0,
-    "anneal_lr_every": 20, 
-    "lr_anneal_factor": 1.0, 
 }

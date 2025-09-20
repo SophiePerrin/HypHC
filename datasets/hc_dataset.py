@@ -24,6 +24,7 @@ class HCDataset(data.Dataset):
         self.labels = labels
         self.similarities = similarities
         self.n_nodes = self.similarities.shape[0]
+        self.inter_prob = inter_prob
         self.triples = self.generate_triples(num_samples)
 
     def __len__(self):
@@ -42,7 +43,7 @@ class HCDataset(data.Dataset):
         if num_samples < 0:
             triples = generate_all_triples(self.n_nodes)
         else:
-            triples = samples_triples_balanced(self.n_nodes, num_samples, self.similarities)
+            triples = samples_triples_balanced(self.n_nodes, num_samples, self.similarities, self.inter_prob)
             # triples = samples_triples(self.n_nodes, num_samples=num_samples)
         logging.info(f"Total of {triples.shape[0]} triples")
         return triples.astype("int64")
