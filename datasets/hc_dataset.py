@@ -6,7 +6,7 @@ import numpy as np
 import torch
 import torch.utils.data as data
 
-from datasets.triples import generate_all_triples, samples_triples
+from datasets.triples import generate_all_triples, samples_triples, samples_triples_balanced
 
 
 class HCDataset(data.Dataset):
@@ -42,6 +42,7 @@ class HCDataset(data.Dataset):
         if num_samples < 0:
             triples = generate_all_triples(self.n_nodes)
         else:
-            triples = samples_triples(self.n_nodes, num_samples=num_samples)
+            triples = samples_triples_balanced(self.n_nodes, num_samples, self.similarities)
+            # triples = samples_triples(self.n_nodes, num_samples=num_samples)
         logging.info(f"Total of {triples.shape[0]} triples")
         return triples.astype("int64")
