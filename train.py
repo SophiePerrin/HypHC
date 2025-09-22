@@ -20,10 +20,11 @@ from model.hyphc import HypHC
 from utils.metrics import dasgupta_cost
 from utils.training import add_flags_from_config, get_savedir
 
+
 # =====================================================
 # 🔽 Dasgupta continu (relaxation directe)
 # =====================================================
-def dasgupta_continuous(embeddings, weights=None):
+def norms_continuous(embeddings, weights=None):
     """
     Continuous relaxation of Dasgupta cost directly from hyperbolic embeddings.
     Embeddings are assumed in Poincaré ball (‖z‖<1).
@@ -149,6 +150,7 @@ def optimize_alpha_by_training(alphas, args_template):
 def train(args):
     logger = logging.getLogger()
     logger.setLevel(logging.INFO)
+    norm_history = []
 
     # get saving directory
     if args.save:
@@ -252,30 +254,28 @@ def train(args):
         if (epoch + 1) % args.eval_every == 0:
             model.eval()
             tree = model.decode_tree(fast_decoding=args.fast_decoding)
-            disc_cost = dasgupta_cost(tree, similarities)
+            cost = dasgupta_cost(tree, similarities)
 
             emb = model.embeddings.weight.detach()
-            cont_cost = dasgupta_continuous(emb, similarities).item()
+            norm_cost = norms_continuous(emb, similarities).item()
 
-            logging.info(f"Dasgupta's cost (discrete):   {disc_cost:.4f}")
-            logging.info(f"Dasgupta's cost (continuous): {cont_cost:.4f}")
+            logging.info(f"Dasgupta's cost :   {cost:.4f}")
+            logging.info(f'Norms"s "cost" (continuous): {norm_cost:.4f}')
 
             # === DIAGNOSTIC DES NORMES ===
             norms = torch.norm(emb, dim=1).cpu().numpy()
             logging.info(f"Embedding norms: mean={norms.mean():.4f}, min={norms.min():.4f}, max={norms.max():.4f}")
-            if not hasattr(train, "norm_history"):
-                train.norm_history = []
-            train.norm_history.append(norms)
+            norm_history.append(norms)
             # ===============================
 
             with open(csv_path, "a", newline="") as f:
                 writer = csv.writer(f)
-                writer.writerow([epoch+1, total_loss, disc_cost, cont_cost])
-            log_data.append([epoch+1, total_loss, disc_cost, cont_cost])
+                writer.writerow([epoch+1, total_loss, cost, norm_cost])
+            log_data.append([epoch+1, total_loss, cost, norm_cost])
 
-            if disc_cost < best_cost:
+            if cost < best_cost:
                 counter = 0
-                best_cost = disc_cost
+                best_cost = cost
                 # best_model = model.state_dict()
                 best_model_buffer = io.BytesIO()                    # ###
                 torch.save(model.state_dict(), best_model_buffer)   # ###
@@ -324,33 +324,8 @@ def train(args):
         torch.save(model_to_save, save_path)
         logger.removeHandler(hdlr)              # ##
         hdlr.close()                            # ##
-    '''
-    if best_model is not None:
-        logging.info("Loading best model before evaluation.")
-        model.load_state_dict(best_model)
-        model_to_save = best_model
-    else:
-    logging.warning("No best model selected during training.")
+    
 
-    else:
-        logging.warning("No best model selected during training. Saving current model state instead.")
-        model_to_save = model.state_dict()
-
-    if args.save:
-        logging.info("Saving model at {}".format(save_path))
-        torch.save(model_to_save, save_path)
-    '''
-    '''
-    logging.info("Optimization finished.")
-    if best_model is not None:
-        # load best model
-        model.load_state_dict(best_model)
-
-    if args.save:
-        # save best embeddings
-        logging.info("Saving best model at {}".format(save_path))
-        torch.save(best_model, save_path)
-    '''
     # evaluation
     model.eval()
     logging.info("Decoding embeddings.")
@@ -363,7 +338,7 @@ def train(args):
 
     # ### Sauvegarde du diagnostic
     import pandas as pd
-    norms_df = pd.DataFrame(train.norm_history)
+    norms_df = pd.DataFrame(norm_history)
     save_dir = get_savedir(args)
     os.makedirs(save_dir, exist_ok=True)
     norms_csv_path = os.path.join(save_dir, f"embedding_norms_{args.seed}.csv")
@@ -372,8 +347,8 @@ def train(args):
 
     # Optionnel : tracer un plot (si matplotlib disponible)
     plt.figure(figsize=(8, 6))
-    x = np.arange(args.eval_every, (len(train.norm_history)+1)*args.eval_every, args.eval_every)
-    plt.plot([n.mean() for n in train.norm_history], marker='o')
+    x = np.arange(args.eval_every, (len(norm_history)+1)*args.eval_every, args.eval_every)
+    plt.plot([n.mean() for n in norm_history], marker='o')
     plt.xlabel("Epoch")
     plt.ylabel("Mean embedding norm")
     plt.title("Evolution of embedding norms over training")

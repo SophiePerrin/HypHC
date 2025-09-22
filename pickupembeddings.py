@@ -77,20 +77,7 @@ if __name__ == "__main__":
     # charge les données
     _, y_true, similarities = load_data(config_args.dataset)
 
-    '''
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser("Hyperbolic Hierarchical Clustering.")
-    parser.add_argument("--model_dir", type=str, required=True,
-                        help="path to a directory with a torch model_{seed}.pkl and a config.json files saved by train.py."
-                        )
-    parser.add_argument("--seed", type=str, default=0, help="model seed to use")
-    args = parser.parse_args()
-    
-    # load dataset
-    config = json.load(open(os.path.join(args.model_dir, "config.json")))
-    config_args = argparse.Namespace(**config)
-    _, y_true, similarities = load_data(config_args.dataset)
-    '''
+  
     # build HypHC model
     model = HypHC(similarities.shape[0], config_args.rank, config_args.temperature, config_args.init_size,
                   config_args.max_scale)
@@ -108,16 +95,18 @@ if __name__ == "__main__":
     # Sauvegarde des embeddings des feuilles dans le même dossier que le modèle
     # np.save(f"{model_dir}/leaves_emb.npy", leaves_embeddings)
 
-    emb_name = f"leaves_emb_{config_args.dataset}.npy"
+    emb_name = f"leaves_emb_{config_args.dataset}temp{config_args.temperature}t_factor{config_args.temperature_anneal_factor}lr{config_args.learning_rate}.npy"
     np.save(os.path.join(model_dir, emb_name), leaves_embeddings)
 
     # sauvegarde l'arbre décodé dans le même dossier que le modèle
     # nx.write_gpickle(tree, f"{model_dir}/tree.gpickle")
     
+    '''
     tree_name = f"tree_{config_args.dataset}.gpickle"
 
     with open(os.path.join(model_dir, tree_name), "wb") as f: # adapté pour l'environnement python 3.8
         pickle.dump(tree, f)
+    '''
 
     BUCKET = "projet-clustering-ano-graphe"
     PREFIX = "albert/"
@@ -137,15 +126,10 @@ if __name__ == "__main__":
     fs = s3fs.S3FileSystem(client_kwargs={'endpoint_url': endpoint})
 
     # Upload vers S3
-    '''
+    
     files_to_upload = [
-        (f"{model_dir}/leaves_emb.npy", f"{BUCKET}/{PREFIX}leaves_emb.npy"),
-        (f"{model_dir}/tree.gpickle", f"{BUCKET}/{PREFIX}tree.gpickle")
-        ]
-    '''
-    files_to_upload = [
-        (os.path.join(model_dir, emb_name), f"{BUCKET}/{PREFIX}{emb_name}"),
-        (os.path.join(model_dir, tree_name), f"{BUCKET}/{PREFIX}{tree_name}")
+        (os.path.join(model_dir, emb_name), f"{BUCKET}/{PREFIX}{emb_name}")# ,
+        # (os.path.join(model_dir, tree_name), f"{BUCKET}/{PREFIX}{tree_name}")
         ]
 
     for local_path, s3_path in files_to_upload:
