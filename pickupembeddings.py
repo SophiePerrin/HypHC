@@ -11,7 +11,7 @@ from model.hyphc import HypHC
 from utils.poincare import project
 import networkx as nx
 import pickle
-
+import shutil
 
 # Ajout (pour définir le dossier dans lequel on sauvegardera les embeddings)
 
@@ -95,12 +95,13 @@ if __name__ == "__main__":
     # Sauvegarde des embeddings des feuilles dans le même dossier que le modèle
     # np.save(f"{model_dir}/leaves_emb.npy", leaves_embeddings)
 
-    emb_name = f"leaves_emb_{config_args.dataset}_temp{config_args.temperature}tfactor{config_args.temperature_anneal_factor}lr{config_args.learning_rate}.npy"
+    emb_name = f"leaves_emb_{config_args.dataset}_temp{config_args.temperature}tfactor{config_args.temperature_anneal_factor}lr{config_args.learning_rate}intprob{config_args.inter_prob}.npy"
     np.save(os.path.join(model_dir, emb_name), leaves_embeddings)
 
     # sauvegarde l'arbre décodé dans le même dossier que le modèle
     # nx.write_gpickle(tree, f"{model_dir}/tree.gpickle")
-    
+    # sauvegarde du log correspondant dans le même dossier que le modèle
+
     '''
     tree_name = f"tree_{config_args.dataset}.gpickle"
 
@@ -131,6 +132,20 @@ if __name__ == "__main__":
         (os.path.join(model_dir, emb_name), f"{BUCKET}/{PREFIX}{emb_name}")# ,
         # (os.path.join(model_dir, tree_name), f"{BUCKET}/{PREFIX}{tree_name}")
         ]
+    # ajoute le log correspondant
+    # nom du fichier de log local
+    log_file_local = f"train_{config_args.seed}.log"
+    log_path = os.path.join(model_dir, log_file_local)  # chemin réel du log
+
+    # nom que tu veux sur S3
+    log_file_s3 = f"log_{config_args.dataset}_temp{config_args.temperature}tfactor{config_args.temperature_anneal_factor}lr{config_args.learning_rate}intprob{config_args.inter_prob}.log"
+    s3_path_log = f"{BUCKET}/{PREFIX}{log_file_s3}"
+
+    # ajouter le log dans la liste des fichiers à uploader
+    if os.path.exists(log_path):
+        files_to_upload.append((log_path, s3_path_log))
+    else:
+        print(f"⚠️ Attention : le log {log_path} n'existe pas et ne sera pas uploadé")
 
     for local_path, s3_path in files_to_upload:
         with fs.open(s3_path, "wb") as f_out:
