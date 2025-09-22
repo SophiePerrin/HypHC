@@ -95,7 +95,7 @@ if __name__ == "__main__":
     # Sauvegarde des embeddings des feuilles dans le même dossier que le modèle
     # np.save(f"{model_dir}/leaves_emb.npy", leaves_embeddings)
 
-    emb_name = f"leaves_emb_{config_args.dataset}temp{config_args.temperature}t_factor{config_args.temperature_anneal_factor}lr{config_args.learning_rate}.npy"
+    emb_name = f"leaves_emb_{config_args.dataset}_temp{config_args.temperature}tfactor{config_args.temperature_anneal_factor}lr{config_args.learning_rate}.npy"
     np.save(os.path.join(model_dir, emb_name), leaves_embeddings)
 
     # sauvegarde l'arbre décodé dans le même dossier que le modèle
