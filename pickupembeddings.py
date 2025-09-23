@@ -147,6 +147,20 @@ if __name__ == "__main__":
     else:
         print(f"⚠️ Attention : le log {log_path} n'existe pas et ne sera pas uploadé")
 
+    # ajoute le fichier config.json
+    config_file_local = os.path.join(model_dir, "config.json")
+    if os.path.exists(config_file_local):
+        config_file_s3 = (
+            f"config_{config_args.dataset}_temp{config_args.temperature}"
+            f"tfactor{config_args.temperature_anneal_factor}"
+            f"lr{config_args.learning_rate}"
+            f"intprob{config_args.inter_prob}.json"
+        )
+        s3_path_config = f"{BUCKET}/{PREFIX}{config_file_s3}"
+        files_to_upload.append((config_file_local, s3_path_config))
+    else:
+        print(f"⚠️ Attention : le fichier config.json n'existe pas dans {model_dir}")
+
     for local_path, s3_path in files_to_upload:
         with fs.open(s3_path, "wb") as f_out:
             with open(local_path, "rb") as f_in:
