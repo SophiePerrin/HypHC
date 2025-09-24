@@ -234,6 +234,11 @@ def train(args):
 
     logging.info("Start training")
     for epoch in range(args.epochs):
+        # Régénérer les triplets tous les 10 epochs
+        if epoch % 10 == 0 and epoch > 0:
+            print(f"Régénération des triplets à l'epoch {epoch}")
+            dataset.triples = dataset.generate_triples(num_samples=100_000)
+        
         model.train()
         total_loss = 0.0
         with tqdm(total=len(dataloader), unit='ex', disable=args.no_progress) as bar:
