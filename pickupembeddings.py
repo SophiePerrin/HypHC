@@ -95,7 +95,7 @@ if __name__ == "__main__":
     # Sauvegarde des embeddings des feuilles dans le même dossier que le modèle
     # np.save(f"{model_dir}/leaves_emb.npy", leaves_embeddings)
 
-    emb_name = f"leaves_emb_{config_args.dataset}_temp{config_args.temperature}tfactor{config_args.temperature_anneal_factor}lr{config_args.learning_rate}intprob{config_args.inter_prob}.npy"
+    emb_name = f"leaves_emb_{config_args.dataset}_{config_args.triples}temp{config_args.temperature}tfactor{config_args.temperature_anneal_factor}lr{config_args.learning_rate}intprob{config_args.inter_prob}.npy"
     np.save(os.path.join(model_dir, emb_name), leaves_embeddings)
 
     # sauvegarde l'arbre décodé dans le même dossier que le modèle
@@ -138,7 +138,7 @@ if __name__ == "__main__":
     log_path = os.path.join(model_dir, log_file_local)  # chemin réel du log
 
     # nom que tu veux sur S3
-    log_file_s3 = f"log_{config_args.dataset}_temp{config_args.temperature}tfactor{config_args.temperature_anneal_factor}lr{config_args.learning_rate}intprob{config_args.inter_prob}.log"
+    log_file_s3 = f"log_{config_args.dataset}_{config_args.triples}temp{config_args.temperature}tfactor{config_args.temperature_anneal_factor}lr{config_args.learning_rate}intprob{config_args.inter_prob}.log"
     s3_path_log = f"{BUCKET}/{PREFIX}{log_file_s3}"
 
     # ajouter le log dans la liste des fichiers à uploader
@@ -151,7 +151,7 @@ if __name__ == "__main__":
     config_file_local = os.path.join(model_dir, "config.json")
     if os.path.exists(config_file_local):
         config_file_s3 = (
-            f"config_{config_args.dataset}_temp{config_args.temperature}"
+            f"config_{config_args.dataset}_{config_args.triples}temp{config_args.temperature}"
             f"tfactor{config_args.temperature_anneal_factor}"
             f"lr{config_args.learning_rate}"
             f"intprob{config_args.inter_prob}.json"

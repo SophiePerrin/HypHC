@@ -36,5 +36,5 @@ config_args = {
     "alpha": 0.5,                           # ##
 
     'no_progress': (False, "Désactive les barres de progression pendant l'entraînement"), # ##
-
+    'triples': ""
 }
