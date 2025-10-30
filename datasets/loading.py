@@ -95,7 +95,8 @@ def load_data_s3(name, dataset_name):
         return np.load(local_path)
 
     # Paramètres S3
-    S3_ENDPOINT_URL = "https://" + os.environ["AWS_S3_ENDPOINT"]
+    #S3_ENDPOINT_URL = "https://" + os.environ["AWS_S3_ENDPOINT"]
+    S3_ENDPOINT_URL = os.environ["AWS_S3_ENDPOINT"]
 
     # Initialiser le système de fichiers S3
     fs = s3fs.S3FileSystem(client_kwargs={'endpoint_url': S3_ENDPOINT_URL})

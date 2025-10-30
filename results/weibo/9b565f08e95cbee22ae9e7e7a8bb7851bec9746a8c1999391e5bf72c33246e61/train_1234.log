@@ -13,3 +13,17 @@
 2025-10-30 01:40:18,189 INFO Using seed 1234.
 2025-10-30 01:40:18,190 INFO Using double precision.
 2025-10-30 01:40:18,211 INFO Found credentials in environment variables.
+2025-10-30 18:58:44,231 INFO Using seed 1234.
+2025-10-30 18:58:44,231 INFO Using double precision.
+2025-10-30 18:58:44,254 INFO Found credentials in environment variables.
+2025-10-30 19:10:26,210 INFO Using seed 1234.
+2025-10-30 19:10:26,211 INFO Using double precision.
+2025-10-30 19:10:26,231 INFO Found credentials in environment variables.
+2025-10-30 19:10:38,983 INFO Generating triples.
+2025-10-30 19:10:46,151 INFO Total of 100000 triples
+2025-10-30 19:10:47,112 INFO Start training
+2025-10-30 19:10:52,212 INFO 	 Epoch 0 | average train loss: 0.601259
+2025-10-30 19:10:57,389 INFO 	 Epoch 1 | average train loss: 0.597880
+2025-10-30 19:10:57,402 INFO Optimization finished.
+2025-10-30 19:10:57,402 WARNING No best model selected during training.
+2025-10-30 19:10:57,402 INFO Saving model at /home/onyxia/work/HypHC/results/weibo/9b565f08e95cbee22ae9e7e7a8bb7851bec9746a8c1999391e5bf72c33246e61/model_1234.pkl

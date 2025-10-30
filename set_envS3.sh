@@ -18,7 +18,7 @@ source ~/miniconda3/bin/activate hyphc_env
 # -----------------------------
 # Variables MinIO / S3
 # -----------------------------
-export AWS_S3_ENDPOINT="minio.lab.sspcloud.fr"
+export AWS_S3_ENDPOINT="https://minio.lab.sspcloud.fr"
 export AWS_DEFAULT_REGION=us-east-1
 
 export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
