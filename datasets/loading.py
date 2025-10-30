@@ -100,10 +100,15 @@ def load_data_s3(name, dataset_name):
     # Initialiser le système de fichiers S3
     fs = s3fs.S3FileSystem(client_kwargs={'endpoint_url': S3_ENDPOINT_URL})
 
+    """
     # Spécifier le chemin dans le bucket
     BUCKET = "projet-clustering-ano-graphe"
     FILE_KEY_S3 = f"albert/{name}_{dataset_name}.npy"  # Remplace par le chemin correct
     FILE_PATH_S3 = BUCKET + "/" + FILE_KEY_S3
+    """
+
+    # Spécifier le chemin complet S3 avec bucket
+    FILE_PATH_S3 = "projet-clustering-ano-graphe/albert/{}_{}.npy".format(name, dataset_name)
 
     # Charger le fichier .npy depuis S3
     with fs.open(FILE_PATH_S3, mode="rb") as f:
